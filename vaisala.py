@@ -21,20 +21,29 @@ import Pyro4
 
 DAEMON_URI = 'PYRO:vaisala_daemon@localhost:9001'
 
-def print_latest_measurement():
+def print_last_measurement():
     """Prints the latest weather data in human-readable form"""
     vaisala = Pyro4.Proxy(DAEMON_URI)
-    latest = vaisala.latest_measurement()
+    latest = vaisala.last_measurement()
 
-    print('Data received {}:'.format(latest['date']))
-    print(u'Wind Direction: {} \u00B0'.format(latest['wind_direction']))
-    print(u'    Wind Speed: {} km/h'.format(latest['wind_speed']))
-    print(u'   Temperature: {} \u2103'.format(latest['temperature']))
-    print(u' Rel. Humidity: {} %'.format(latest['relative_humidity']))
-    print(u'      Pressure: {} hPa'.format(latest['pressure']))
-    print(u'   Accum. Rain: {} mm'.format(latest['accumulated_rain']))
-    print(u'  Heater Temp.: {} \u2103'.format(latest['heater_temperature']))
-    print(u'Heater Voltage: {} V'.format(latest['heater_voltage']))
+    if latest is None:
+        print('No data available')
+    else:
+        print('Data received {}:'.format(latest['date']))
+        print(u'Wind Direction: {} \u00B0'.format(latest['wind_direction']))
+        print(u'    Wind Speed: {} km/h'.format(latest['wind_speed']))
+        print(u'   Temperature: {} \u2103'.format(latest['temperature']))
+        print(u' Rel. Humidity: {} %'.format(latest['relative_humidity']))
+        print(u'      Pressure: {} hPa'.format(latest['pressure']))
+        print(u'   Accum. Rain: {} mm'.format(latest['accumulated_rain']))
+        print(u'  Heater Temp.: {} \u2103'.format(latest['heater_temperature']))
+        print(u'Heater Voltage: {} V'.format(latest['heater_voltage']))
+        print()
+
+    error = vaisala.last_error()
+    if error[0] is not None:
+        print('Last error was at {}'.format(error[0]))
+        print(error[1])
 
 if __name__ == '__main__':
-    print_latest_measurement()
+    print_last_measurement()

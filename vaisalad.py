@@ -22,9 +22,12 @@ import Pyro4
 import re
 import serial
 import threading
+import time
 
 PYRO_HOST = 'localhost'
 PYRO_PORT = 9001
+
+# pylint: disable=too-many-instance-attributes
 
 class VaisalaDaemon:
     """Daemon class that wraps the RS232 interface"""
@@ -47,35 +50,64 @@ class VaisalaDaemon:
     def __init__(self):
         self._lock = threading.Lock()
         self._running = True
+        self._last_error = datetime.datetime.min
         self._regex = re.compile(VaisalaDaemon.DATA_REGEX)
-        self._port = serial.Serial(VaisalaDaemon.SERIAL_PORT,
-                                   VaisalaDaemon.SERIAL_BAUD,
-                                   timeout=VaisalaDaemon.SERIAL_TIMEOUT)
-
         self._latest = None
-
-        # Flush any stale state
-        self._port.flushInput()
-        self._port.flushOutput()
-
-        # First line may have been only partially recieved
-        self._port.readline()
+        self._last_error_time = None
+        self._last_error_message = None
+        self._port = None
 
         runloop = threading.Thread(target=self.run)
         runloop.daemon = True
         runloop.start()
 
+    # pylint: disable=broad-except
     def run(self):
         """Main run loop"""
         while self._running:
-            data = self._port.readline()
-            match = self._regex.match(data)
-
-            if match:
+            try:
+                self._port = serial.Serial(VaisalaDaemon.SERIAL_PORT,
+                                           VaisalaDaemon.SERIAL_BAUD,
+                                           timeout=VaisalaDaemon.SERIAL_TIMEOUT)
+            except Exception as exception:
+                print(exception)
+                print('Will retry in 10 seconds...')
                 with self._lock:
-                    self._latest = {k: float(v) for k, v
-                                    in match.groupdict().items()}
-                    self._latest['date'] = datetime.datetime.utcnow()
+                    self._last_error_message = str(exception)
+                    self._last_error_time = datetime.datetime.utcnow()
+                time.sleep(10.)
+                continue
+
+            try:
+                print('Connected to', VaisalaDaemon.SERIAL_PORT)
+                self._latest = None
+
+                # Flush any stale state
+                self._port.flushInput()
+                self._port.flushOutput()
+
+                # First line may have been only partially recieved
+                self._port.readline()
+
+                while self._running:
+                    data = self._port.readline()
+                    match = self._regex.match(data)
+
+                    if match:
+                        with self._lock:
+                            self._latest = {k: float(v) for k, v
+                                            in match.groupdict().items()}
+                            self._latest['date'] = datetime.datetime.utcnow()
+            except Exception as exception:
+                self._port.close()
+                with self._lock:
+                    self._last_error_message = str(exception)
+                    self._last_error_time = datetime.datetime.utcnow()
+
+                print(exception)
+                print('Will retry in 10 seconds...')
+                time.sleep(10.)
+    # pylint: enable=broad-except
 
     def running(self):
         """Returns false if the daemon should be terminated"""
@@ -85,11 +117,16 @@ class VaisalaDaemon:
         """Stop the daemon thread"""
         self._running = False
 
-    def latest_measurement(self):
-        """Query the latest valid measurement.  May return None if no data
-        is available"""
+    def last_measurement(self):
+        """Query the latest valid measurement.
+        May return None if no data is available"""
         with self._lock:
             return self._latest
+
+    def last_error(self):
+        """Query the latest error time and message"""
+        with self._lock:
+            return (self._last_error_time, self._last_error_message)
 
 def spawn_daemon():
     """Spawns the daemon and registers it with Pyro"""
