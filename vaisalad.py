@@ -47,18 +47,18 @@ class VaisalaDaemon:
         self.heater_temperature = 0
         self.heater_voltage = 0
 
-        self.lock = threading.Lock()
-        self.regex = re.compile(VaisalaDaemon.DATA_REGEX)
-        self.port = serial.Serial(VaisalaDaemon.SERIAL_PORT,
-                                  VaisalaDaemon.SERIAL_BAUD,
-                                  timeout=VaisalaDaemon.SERIAL_TIMEOUT)
+        self._lock = threading.Lock()
+        self._regex = re.compile(VaisalaDaemon.DATA_REGEX)
+        self._port = serial.Serial(VaisalaDaemon.SERIAL_PORT,
+                                   VaisalaDaemon.SERIAL_BAUD,
+                                   timeout=VaisalaDaemon.SERIAL_TIMEOUT)
         
         # Flush any stale state
-        self.port.flushInput()
-        self.port.flushOutput()
+        self._port.flushInput()
+        self._port.flushOutput()
 
         # First line may have been only partially recieved
-        self.port.readline()
+        self._port.readline()
         
         runloop = threading.Thread(target=self.run)
         runloop.daemon = True
@@ -66,11 +66,11 @@ class VaisalaDaemon:
 
     def run(self):
         while True:
-            data = self.port.readline()
-            match = self.regex.match(data)
+            data = self._port.readline()
+            match = self._regex.match(data)
 
             if match:
-                with self.lock:
+                with self._lock:
                     self.data_received = datetime.datetime.utcnow()
                     self.wind_direction = int(match.group('wind_direction'))
                     self.wind_speed = float(match.group('wind_speed'))
@@ -86,7 +86,7 @@ vaisala = VaisalaDaemon()
 last_update = datetime.datetime.min
 while True:
     time.sleep(.1)
-    with vaisala.lock:
+    with vaisala._lock:
         if last_update < vaisala.data_received:
             print('Data received {}:'.format(vaisala.data_received))
             print(u'Wind Direction: {} \u00B0'.format(vaisala.wind_direction))
