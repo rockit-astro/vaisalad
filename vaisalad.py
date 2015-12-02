@@ -65,6 +65,7 @@ class VaisalaDaemon:
     def run(self):
         """Main run loop"""
         while self._running:
+            # Initial setup
             try:
                 self._port = serial.Serial(VaisalaDaemon.SERIAL_PORT,
                                            VaisalaDaemon.SERIAL_BAUD,
@@ -89,6 +90,7 @@ class VaisalaDaemon:
                 # First line may have been only partially recieved
                 self._port.readline()
 
+                # Main run loop
                 while self._running:
                     data = self._port.readline()
                     match = self._regex.match(data)
@@ -97,7 +99,7 @@ class VaisalaDaemon:
                         with self._lock:
                             self._latest = {k: float(v) for k, v
                                             in match.groupdict().items()}
-                            self._latest['date'] = datetime.datetime.utcnow()
+                            self._latest['date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
             except Exception as exception:
                 self._port.close()
                 with self._lock:
