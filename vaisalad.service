@@ -1,0 +1,12 @@
+[Unit]
+Description=Daemon for exposing an attached Vaiala weather station via Pyro.
+After=syslog.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/vaisalad
+StandardOutput=syslog
+StandardError=syslog
+
+[Install]
+WantedBy=multi-user.target
