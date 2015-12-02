@@ -31,8 +31,8 @@ PYRO_PORT = 9001
 
 class VaisalaDaemon:
     """Daemon class that wraps the RS232 interface"""
-    SERIAL_PORT = '/dev/ttyACM0'
-    SERIAL_BAUD = 9600
+    SERIAL_PORT = '/dev/ttyS0'
+    SERIAL_BAUD = 4800
     SERIAL_TIMEOUT = 5
 
     # pylint: disable=anomalous-backslash-in-string
