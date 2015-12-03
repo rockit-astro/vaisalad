@@ -1,10 +1,10 @@
 [Unit]
-Description=Daemon for exposing an attached Vaiala weather station via Pyro.
+Description=Daemon for exposing an attached Vaisala WXT520 weather station via Pyro.
 After=syslog.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/vaisalad
+ExecStart=/usr/bin/vaisalad
 StandardOutput=syslog
 StandardError=syslog
 
