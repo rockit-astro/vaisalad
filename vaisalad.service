@@ -4,7 +4,7 @@ After=syslog.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/vaisalad
+ExecStart=/usr/bin/env python3 -u /usr/bin/vaisalad
 StandardOutput=syslog
 StandardError=syslog
 
