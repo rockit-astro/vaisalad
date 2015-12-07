@@ -17,7 +17,7 @@
 
 import distutils.core
 
-distutils.core.setup(name='vaisalad',
+distutils.core.setup(name='onemetre-vaisalad',
     version='1.0',
     author="Paul Chote",
     author_email="P.Chote@warwick.ac.uk",
