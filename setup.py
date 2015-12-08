@@ -34,6 +34,7 @@ distutils.core.setup(name='onemetre-vaisalad',
 
     scripts=['vaisalad', 'vaisala'],
     data_files=[
+        ('/usr/lib/udev/rules.d', ['10-onemetre-vaisala.rules']),
         ('/usr/lib/systemd/system', ['vaisalad.service']),
     ],
 )

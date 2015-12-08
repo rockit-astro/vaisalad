@@ -8,5 +8,3 @@ ExecStart=/usr/bin/env python3 -u /usr/bin/vaisalad
 StandardOutput=syslog
 StandardError=syslog
 
-[Install]
-WantedBy=multi-user.target
