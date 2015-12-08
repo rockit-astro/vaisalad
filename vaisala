@@ -17,18 +17,24 @@
 
 """Commandline client for communicating with vaisalad"""
 
+import sys
 import Pyro4
 
 DAEMON_URI = 'PYRO:vaisala_daemon@localhost:9001'
 
 def print_last_measurement():
     """Prints the latest weather data in human-readable form"""
-    vaisala = Pyro4.Proxy(DAEMON_URI)
-    latest = vaisala.last_measurement()
+    latest = None
+    error = None
+    try:
+        with Pyro4.Proxy(DAEMON_URI) as vaisala:
+            latest = vaisala.last_measurement()
+            error = vaisala.last_error()
+    except Pyro4.errors.CommunicationError:
+        print('Failed to query Vaisala daemon')
+        return 1
 
-    if latest is None:
-        print('No data available')
-    else:
+    if latest is not None:
         print('Data received {}:'.format(latest['date']))
         print(u'Wind Direction: {} \u00B0'.format(latest['wind_direction']))
         print(u'    Wind Speed: {} km/h'.format(latest['wind_speed']))
@@ -39,11 +45,12 @@ def print_last_measurement():
         print(u'  Heater Temp.: {} \u2103'.format(latest['heater_temperature']))
         print(u'Heater Voltage: {} V'.format(latest['heater_voltage']))
         print()
+    else:
+        print('No data available')
 
-    error = vaisala.last_error()
     if error[0] is not None:
         print('Last error was at {}'.format(error[0]))
         print(error[1])
-
+    return 0
 if __name__ == '__main__':
-    print_last_measurement()
+    sys.exit(print_last_measurement())
