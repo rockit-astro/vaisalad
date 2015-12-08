@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with vaisalad.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Commandline client for communicating with vaisalad"""
+"""Commandline client for querying the latest measurement from vaisalad"""
 
 import sys
 import Pyro4

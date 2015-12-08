@@ -16,14 +16,21 @@
 # along with vaisalad.  If not, see <http://www.gnu.org/licenses/>.
 
 import distutils.core
+import os
+
+README_PATH = os.path.join(os.getcwd(), 'README.md')
+
+# rpmbuild mangles the absolute path, so try a fallback
+if not os.path.exists(README_PATH):
+    README_PATH = os.path.join(os.getcwd(), '../../../../../README.md')
 
 distutils.core.setup(name='onemetre-vaisalad',
     version='1.0',
     author="Paul Chote",
-    author_email="P.Chote@warwick.ac.uk",
+    author_email="p.chote@warwick.ac.uk",
     url="https://github.com/warwick-one-metre/vaisalad",
-    description="Daemon for exposing an attached Vaisala WXT520 weather station via Pyro.",
-    long_description="Daemon for exposing an attached Vaisala WXT520 weather station via Pyro.",
+    description="Weather station daemon for the Warwick one-metre telescope.",
+    long_description=open(README_PATH).read(),
     license="GPL3",
 
     options = {'bdist_rpm': {
