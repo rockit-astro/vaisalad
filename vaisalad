@@ -24,7 +24,7 @@ import serial
 import threading
 import time
 
-PYRO_HOST = 'localhost'
+PYRO_HOST = '192.168.0.102'
 PYRO_PORT = 9001
 
 # pylint: disable=too-many-instance-attributes

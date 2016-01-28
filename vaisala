@@ -20,7 +20,7 @@
 import sys
 import Pyro4
 
-DAEMON_URI = 'PYRO:vaisala_daemon@localhost:9001'
+DAEMON_URI = 'PYRO:vaisala_daemon@192.168.0.102:9001'
 
 def print_last_measurement():
     """Prints the latest weather data in human-readable form"""
