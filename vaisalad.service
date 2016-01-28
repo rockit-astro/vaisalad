@@ -3,6 +3,7 @@ Description=Daemon for exposing an attached Vaisala WXT520 weather station via P
 After=syslog.target
 
 [Service]
+Restart=on-failure
 Type=simple
 ExecStart=/usr/bin/env python3 -u /usr/bin/vaisalad
 StandardOutput=syslog
