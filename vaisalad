@@ -18,16 +18,17 @@
 """Weather station daemon for the Warwick one-metre telescope"""
 
 import datetime
-import Pyro4
 import re
-import serial
 import threading
 import time
+import Pyro4
+import serial
 
 PYRO_HOST = '192.168.0.102'
 PYRO_PORT = 9001
+PYRO_NAME = 'vaisala_daemon'
 
-# pylint: disable=too-many-instance-attributes
+# pylint: disable=broad-except
 
 class VaisalaDaemon:
     """Daemon class that wraps the RS232 interface"""
@@ -53,15 +54,12 @@ class VaisalaDaemon:
         self._last_error = datetime.datetime.min
         self._regex = re.compile(VaisalaDaemon.DATA_REGEX)
         self._latest = None
-        self._last_error_time = None
-        self._last_error_message = None
         self._port = None
 
         runloop = threading.Thread(target=self.run)
         runloop.daemon = True
         runloop.start()
 
-    # pylint: disable=broad-except
     def run(self):
         """Main run loop"""
         while self._running:
@@ -73,9 +71,6 @@ class VaisalaDaemon:
             except Exception as exception:
                 print(exception)
                 print('Will retry in 10 seconds...')
-                with self._lock:
-                    self._last_error_message = str(exception)
-                    self._last_error_time = datetime.datetime.utcnow()
                 time.sleep(10.)
                 continue
 
@@ -99,47 +94,31 @@ class VaisalaDaemon:
                         with self._lock:
                             self._latest = {k: float(v) for k, v
                                             in match.groupdict().items()}
-                            self._latest['date'] = datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                            self._latest['date'] = datetime.datetime.utcnow() \
+                                .strftime('%Y-%m-%dT%H:%M:%SZ')
             except Exception as exception:
                 self._port.close()
-                with self._lock:
-                    self._last_error_message = str(exception)
-                    self._last_error_time = datetime.datetime.utcnow()
-
                 print(exception)
                 print('Will retry in 10 seconds...')
                 time.sleep(10.)
-    # pylint: enable=broad-except
 
-    def running(self):
-        """Returns false if the daemon should be terminated"""
-        return self._running
-
-    def stop(self):
-        """Stop the daemon thread"""
-        self._running = False
-
+    @Pyro4.expose
     def last_measurement(self):
-        """Query the latest valid measurement.
-        May return None if no data is available"""
+        """Query the latest valid measurement."""
         with self._lock:
             return self._latest
-
-    def last_error(self):
-        """Query the latest error time and message"""
-        with self._lock:
-            return (self._last_error_time, self._last_error_message)
 
 def spawn_daemon():
     """Spawns the daemon and registers it with Pyro"""
     Pyro4.config.COMMTIMEOUT = 5
+    Pyro4.config.REQUIRE_EXPOSE = True
 
     pyro = Pyro4.Daemon(host=PYRO_HOST, port=PYRO_PORT)
     vaisala = VaisalaDaemon()
-    uri = pyro.register(vaisala, objectId='vaisala_daemon')
+    uri = pyro.register(vaisala, objectId=PYRO_NAME)
 
     print('Starting vaisala daemon with Pyro ID:', uri)
-    pyro.requestLoop(loopCondition=vaisala.running)
+    pyro.requestLoop()
     print('Stopping vaisala daemon with Pyro ID:', uri)
 
 if __name__ == '__main__':

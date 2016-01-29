@@ -17,40 +17,79 @@
 
 """Commandline client for querying the latest measurement from vaisalad"""
 
+import datetime
+import json
+import os
 import sys
 import Pyro4
 
-DAEMON_URI = 'PYRO:vaisala_daemon@192.168.0.102:9001'
+PYRO_HOST = '192.168.0.102'
+PYRO_PORT = 9001
+PYRO_NAME = 'vaisala_daemon'
 
-def print_last_measurement():
+SCRIPT_NAME = os.path.basename(sys.argv[0])
+
+def print_status():
     """Prints the latest weather data in human-readable form"""
     latest = None
-    error = None
     try:
-        with Pyro4.Proxy(DAEMON_URI) as vaisala:
+        with Pyro4.Proxy('PYRO:' + PYRO_NAME + '@' + PYRO_HOST + ':' + str(PYRO_PORT)) as vaisala:
             latest = vaisala.last_measurement()
-            error = vaisala.last_error()
     except Pyro4.errors.CommunicationError:
-        print('Failed to query Vaisala daemon')
+        print('error: unable to communicate with the Vaisala daemon')
         return 1
 
     if latest is not None:
-        print('Data received {}:'.format(latest['date']))
-        print(u'Wind Direction: {} \u00B0'.format(latest['wind_direction']))
-        print(u'    Wind Speed: {} km/h'.format(latest['wind_speed']))
-        print(u'   Temperature: {} \u2103'.format(latest['temperature']))
-        print(u' Rel. Humidity: {} %'.format(latest['relative_humidity']))
-        print(u'      Pressure: {} hPa'.format(latest['pressure']))
-        print(u'   Accum. Rain: {} mm'.format(latest['accumulated_rain']))
-        print(u'  Heater Temp.: {} \u2103'.format(latest['heater_temperature']))
-        print(u'Heater Voltage: {} V'.format(latest['heater_voltage']))
+        date = datetime.datetime.strptime(latest['date'], '%Y-%m-%dT%H:%M:%SZ')
+        print('Data received \033[1m{}\033[0m:'.format(date))
+        print(u'Wind Direction: \033[1m{} \u00B0\033[0m'.format(latest['wind_direction']))
+        print(u'    Wind Speed: \033[1m{} km/h\033[0m'.format(latest['wind_speed']))
+        print(u'   Temperature: \033[1m{} \u2103\033[0m'.format(latest['temperature']))
+        print(u' Rel. Humidity: \033[1m{} %RH\033[0m'.format(latest['relative_humidity']))
+        print(u'      Pressure: \033[1m{} hPa\033[0m'.format(latest['pressure']))
+        print(u'   Accum. Rain: \033[1m{} mm\033[0m'.format(latest['accumulated_rain']))
+        print(u'  Heater Temp.: \033[1m{} \u2103\033[0m'.format(latest['heater_temperature']))
+        print(u'Heater Voltage: \033[1m{} V\033[0m'.format(latest['heater_voltage']))
         print()
     else:
-        print('No data available')
+        print('error: no data available')
+        return 1
 
-    if error[0] is not None:
-        print('Last error was at {}'.format(error[0]))
-        print(error[1])
     return 0
+
+def print_json():
+    """Prints the latest environment data in machine-readable form"""
+    latest = None
+    try:
+        with Pyro4.Proxy('PYRO:' + PYRO_NAME + '@' + PYRO_HOST + ':' + str(PYRO_PORT)) as vaisala:
+            latest = vaisala.last_measurement()
+    except Pyro4.errors.CommunicationError:
+        print('error: unable to communicate with the Vaisala daemon')
+        return 1
+
+    print(json.dumps(latest))
+
+    return 0
+
+def print_usage(name):
+    """Prints the utility help"""
+    print('Usage: {} <command>'.format(name))
+    print()
+    print('   status      print a human-readable summary of the Vaisala status')
+    print('   json        print a machine-readable summary of the Vaisala status')
+    print()
+
+    return 1
+
 if __name__ == '__main__':
-    sys.exit(print_last_measurement())
+    if len(sys.argv) == 1:
+        sys.exit(print_usage(SCRIPT_NAME))
+
+    if sys.argv[1] == 'status':
+        sys.exit(print_status())
+    elif sys.argv[1] == 'json':
+        sys.exit(print_json())
+
+    # Command not found
+    sys.exit(print_usage(SCRIPT_NAME))
+
