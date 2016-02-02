@@ -1,5 +1,5 @@
 Name:      onemetre-vaisala-client
-Version:   1.2
+Version:   1.3
 Release:   1
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station client for the Warwick one-metre telescope.
@@ -15,7 +15,9 @@ vaisala is a commandline utility that prints the latest measurement in a human-r
 
 %build
 mkdir -p %{buildroot}%{_bindir}
+mkdir -p %{buildroot}/etc/bash_completion.d
 %{__install} %{_sourcedir}/vaisala %{buildroot}%{_bindir}
+%{__install} %{_sourcedir}/completion/vaisala %{buildroot}/etc/bash_completion.d/vaisala
 
 # Install python dependencies
 # This is horrible, but it seems to be the only way that actually works!
@@ -24,5 +26,6 @@ pip3 install Pyro4
 %files
 %defattr(0755,root,root,-)
 %{_bindir}/vaisala
+/etc/bash_completion.d/vaisala
 
 %changelog
