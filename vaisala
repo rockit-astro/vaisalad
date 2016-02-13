@@ -43,12 +43,12 @@ def print_status():
     if latest is not None:
         date = datetime.datetime.strptime(latest['date'], '%Y-%m-%dT%H:%M:%SZ')
         print('Data received \033[1m{}\033[0m:'.format(date))
-        print(u'Wind Direction: \033[1m{} \u00B0\033[0m'.format(latest['wind_direction']))
-        print(u'    Wind Speed: \033[1m{} km/h\033[0m'.format(latest['wind_speed']))
-        print(u'   Temperature: \033[1m{} \u2103\033[0m'.format(latest['temperature']))
-        print(u' Rel. Humidity: \033[1m{} %RH\033[0m'.format(latest['relative_humidity']))
-        print(u'      Pressure: \033[1m{} hPa\033[0m'.format(latest['pressure']))
-        print(u'   Accum. Rain: \033[1m{} mm\033[0m'.format(latest['accumulated_rain']))
+        print('Wind Direction: \033[1m{} \u00B0\033[0m'.format(latest['wind_direction']))
+        print('    Wind Speed: \033[1m{} km/h\033[0m'.format(latest['wind_speed']))
+        print('   Temperature: \033[1m{} \u2103\033[0m'.format(latest['temperature']))
+        print(' Rel. Humidity: \033[1m{} %RH\033[0m'.format(latest['relative_humidity']))
+        print('      Pressure: \033[1m{} hPa\033[0m'.format(latest['pressure']))
+        print('   Accum. Rain: \033[1m{} mm\033[0m'.format(latest['accumulated_rain']))
         print()
     else:
         print('error: no data available')
