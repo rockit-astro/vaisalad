@@ -49,8 +49,6 @@ def print_status():
         print(u' Rel. Humidity: \033[1m{} %RH\033[0m'.format(latest['relative_humidity']))
         print(u'      Pressure: \033[1m{} hPa\033[0m'.format(latest['pressure']))
         print(u'   Accum. Rain: \033[1m{} mm\033[0m'.format(latest['accumulated_rain']))
-        print(u'  Heater Temp.: \033[1m{} \u2103\033[0m'.format(latest['heater_temperature']))
-        print(u'Heater Voltage: \033[1m{} V\033[0m'.format(latest['heater_voltage']))
         print()
     else:
         print('error: no data available')
