@@ -45,7 +45,7 @@ class VaisalaDaemon:
         b'Pa=(?P<pressure>\d+\.\d)H,' \
         b'Rc=(?P<accumulated_rain>\d+\.\d\d)M,' \
         b'Th=(?P<heater_temperature>\d+\.\d)C,' \
-        b'Vh=(?P<heater_voltage>\d+\.\d)N\r\n'
+        b'Vh=(?P<heater_voltage>\d+\.\d)(N|V|W|F)\r\n'
     # pylint: enable=anomalous-backslash-in-string
 
     def __init__(self):
