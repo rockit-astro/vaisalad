@@ -55,6 +55,7 @@ class VaisalaDaemon:
         self._regex = re.compile(VaisalaDaemon.DATA_REGEX)
         self._latest = None
         self._port = None
+        self._send_rain_reset = False
 
         runloop = threading.Thread(target=self.run)
         runloop.daemon = True
@@ -87,6 +88,10 @@ class VaisalaDaemon:
 
                 # Main run loop
                 while self._running:
+                    if self._send_rain_reset:
+                        self._port.write('0XZRU\r\n'.encode('ascii'))
+                        self._send_rain_reset = False
+
                     data = self._port.readline()
                     match = self._regex.match(data)
 
@@ -107,6 +112,11 @@ class VaisalaDaemon:
         """Query the latest valid measurement."""
         with self._lock:
             return self._latest
+
+    @Pyro4.expose
+    def reset_rain_counter(self):
+        """Reset the accumulated rain counter"""
+        self._send_rain_reset = True
 
 def spawn_daemon():
     """Spawns the daemon and registers it with Pyro"""

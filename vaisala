@@ -28,6 +28,7 @@ PYRO_PORT = 9001
 PYRO_NAME = 'vaisala_daemon'
 PYRO_COMM_TIMEOUT = 5
 
+PYRO_URI = 'PYRO:' + PYRO_NAME + '@' + PYRO_HOST + ':' + str(PYRO_PORT)
 SCRIPT_NAME = os.path.basename(sys.argv[0])
 sys.excepthook = Pyro4.util.excepthook
 
@@ -35,7 +36,7 @@ def print_status():
     """Prints the latest weather data in human-readable form"""
     latest = None
     try:
-        with Pyro4.Proxy('PYRO:' + PYRO_NAME + '@' + PYRO_HOST + ':' + str(PYRO_PORT)) as vaisala:
+        with Pyro4.Proxy(PYRO_URI) as vaisala:
             latest = vaisala.last_measurement()
     except Pyro4.errors.CommunicationError:
         print('error: unable to communicate with the Vaisala daemon')
@@ -61,7 +62,7 @@ def print_json():
     """Prints the latest environment data in machine-readable form"""
     latest = None
     try:
-        with Pyro4.Proxy('PYRO:' + PYRO_NAME + '@' + PYRO_HOST + ':' + str(PYRO_PORT)) as vaisala:
+        with Pyro4.Proxy(PYRO_URI) as vaisala:
             latest = vaisala.last_measurement()
     except Pyro4.errors.CommunicationError:
         print('error: unable to communicate with the Vaisala daemon')
@@ -71,12 +72,23 @@ def print_json():
 
     return 0
 
+def reset_rain_counter():
+    """Resets the accumulated rain counter"""
+    try:
+        with Pyro4.Proxy(PYRO_URI) as vaisala:
+            vaisala.reset_rain_counter()
+    except Pyro4.errors.CommunicationError:
+        print('error: unable to communicate with the Vaisala daemon')
+        return 1
+    return 0
+
 def print_usage(name):
     """Prints the utility help"""
     print('Usage: {} <command>'.format(name))
     print()
     print('   status      print a human-readable summary of the Vaisala status')
     print('   json        print a machine-readable summary of the Vaisala status')
+    print('   zerorain    reset the accumulated rain counter')
     print()
 
     return 1
@@ -90,6 +102,8 @@ if __name__ == '__main__':
         sys.exit(print_status())
     elif sys.argv[1] == 'json':
         sys.exit(print_json())
+    elif sys.argv[1] == 'zerorain':
+        sys.exit(reset_rain_counter())
 
     # Command not found
     sys.exit(print_usage(SCRIPT_NAME))

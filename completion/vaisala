@@ -3,7 +3,7 @@ _vaisala()
     local cur opts
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
-    opts="status json"
+    opts="status json zerorain"
 
     COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
     return 0
