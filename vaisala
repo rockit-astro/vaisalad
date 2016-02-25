@@ -32,6 +32,10 @@ PYRO_URI = 'PYRO:' + PYRO_NAME + '@' + PYRO_HOST + ':' + str(PYRO_PORT)
 SCRIPT_NAME = os.path.basename(sys.argv[0])
 sys.excepthook = Pyro4.util.excepthook
 
+FMT_RED = u'\033[91m'
+FMT_BOLD = u'\033[1m'
+FMT_CLEAR = u'\033[0m'
+
 def print_status():
     """Prints the latest weather data in human-readable form"""
     latest = None
@@ -44,19 +48,33 @@ def print_status():
 
     if latest is not None:
         date = datetime.datetime.strptime(latest['date'], '%Y-%m-%dT%H:%M:%SZ')
-        print('Data received \033[1m{}\033[0m:'.format(date))
-        print('Wind Direction: \033[1m{} \u00B0\033[0m'.format(latest['wind_direction']))
-        print('    Wind Speed: \033[1m{} km/h\033[0m'.format(latest['wind_speed']))
-        print('   Temperature: \033[1m{} \u2103\033[0m'.format(latest['temperature']))
-        print(' Rel. Humidity: \033[1m{} %RH\033[0m'.format(latest['relative_humidity']))
-        print('      Pressure: \033[1m{} hPa\033[0m'.format(latest['pressure']))
-        print('   Accum. Rain: \033[1m{} mm\033[0m'.format(latest['accumulated_rain']))
+        print('Data received ' + FMT_BOLD + str(date) + FMT_CLEAR)
+        print('Wind Direction: ' + format_value(latest['wind_direction'],
+                                                latest['wind_direction_valid'], '\u00B0'))
+        print('    Wind Speed: ' + format_value(latest['wind_speed'],
+                                                latest['wind_speed_valid'], ' km/h'))
+        print('   Temperature: ' + format_value(latest['temperature'],
+                                                latest['temperature_valid'], '\u00B0C'))
+        print(' Rel. Humidity: ' + format_value(latest['relative_humidity'],
+                                                latest['relative_humidity_valid'], ' %RH'))
+        print('      Pressure: ' + format_value(latest['pressure'],
+                                                latest['pressure_valid'], ' hPa'))
+        print('   Accum. Rain: ' + format_value(latest['accumulated_rain'],
+                                                latest['accumulated_rain_valid'], ' mm'))
         print()
     else:
         print('error: no data available')
         return 1
 
     return 0
+
+def format_value(data, valid, suffix=''):
+    """Builds a formatted string with a value"""
+    ret = FMT_BOLD + str(data) + suffix
+    if not valid:
+        ret += FMT_RED + ' (INVALID)'
+    ret += FMT_CLEAR
+    return ret
 
 def print_json():
     """Prints the latest environment data in machine-readable form"""

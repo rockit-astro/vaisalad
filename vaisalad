@@ -17,6 +17,8 @@
 
 """Weather station daemon for the Warwick one-metre telescope"""
 
+# pylint: disable=broad-except
+
 import datetime
 import re
 import threading
@@ -28,31 +30,38 @@ PYRO_HOST = '192.168.0.102'
 PYRO_PORT = 9001
 PYRO_NAME = 'vaisala_daemon'
 
-# pylint: disable=broad-except
+SERIAL_PORT = '/dev/vaisala'
+SERIAL_BAUD = 4800
+SERIAL_TIMEOUT = 5
+
+# pylint: disable=anomalous-backslash-in-string
+DATA_REGEX = b'0R0,' \
+    b'Dm=(?P<wind_direction>\d+)(?P<wind_direction_status>[D\#]),' \
+    b'Sm=(?P<wind_speed>\d+\.\d)(?P<wind_speed_status>[K\#]),' \
+    b'Ta=(?P<temperature>-?\d+\.\d)(?P<temperature_status>[C\#]),' \
+    b'Ua=(?P<relative_humidity>\d+\.\d)(?P<relative_humidity_status>[P\#]),' \
+    b'Pa=(?P<pressure>\d+\.\d)(?P<pressure_status>[H\#]),' \
+    b'Rc=(?P<accumulated_rain>\d+\.\d\d)(?P<accumulated_rain_status>[M\#]),' \
+    b'Th=(?P<heater_temperature>-?\d+\.\d)(?P<heater_temperature_status>[C\#]),' \
+    b'Vh=(?P<heater_voltage>\d+\.\d)(?P<heater_voltage_status>[NVWF])\r\n'
+# pylint: enable=anomalous-backslash-in-string
+
+DATA_FIELDS = {
+    'wind_direction': b'D',
+    'wind_speed': b'K',
+    'temperature': b'C',
+    'relative_humidity': b'P',
+    'pressure': b'H',
+    'accumulated_rain': b'M'
+}
 
 class VaisalaDaemon:
     """Daemon class that wraps the RS232 interface"""
-    SERIAL_PORT = '/dev/vaisala'
-    SERIAL_BAUD = 4800
-    SERIAL_TIMEOUT = 5
-
-    # pylint: disable=anomalous-backslash-in-string
-    DATA_REGEX = b'0R0,' \
-        b'Dm=(?P<wind_direction>\d+)D,' \
-        b'Sm=(?P<wind_speed>\d+\.\d)K,' \
-        b'Ta=(?P<temperature>\d+\.\d)C,' \
-        b'Ua=(?P<relative_humidity>\d+\.\d)P,' \
-        b'Pa=(?P<pressure>\d+\.\d)H,' \
-        b'Rc=(?P<accumulated_rain>\d+\.\d\d)M,' \
-        b'Th=(?P<heater_temperature>\d+\.\d)C,' \
-        b'Vh=(?P<heater_voltage>\d+\.\d)(N|V|W|F)\r\n'
-    # pylint: enable=anomalous-backslash-in-string
-
     def __init__(self):
         self._lock = threading.Lock()
         self._running = True
         self._last_error = datetime.datetime.min
-        self._regex = re.compile(VaisalaDaemon.DATA_REGEX)
+        self._regex = re.compile(DATA_REGEX)
         self._latest = None
         self._port = None
         self._send_rain_reset = False
@@ -66,9 +75,7 @@ class VaisalaDaemon:
         while self._running:
             # Initial setup
             try:
-                self._port = serial.Serial(VaisalaDaemon.SERIAL_PORT,
-                                           VaisalaDaemon.SERIAL_BAUD,
-                                           timeout=VaisalaDaemon.SERIAL_TIMEOUT)
+                self._port = serial.Serial(SERIAL_PORT, SERIAL_BAUD, timeout=SERIAL_TIMEOUT)
             except Exception as exception:
                 print(exception)
                 print('Will retry in 10 seconds...')
@@ -76,7 +83,7 @@ class VaisalaDaemon:
                 continue
 
             try:
-                print('Connected to', VaisalaDaemon.SERIAL_PORT)
+                print('Connected to', SERIAL_PORT)
                 self._latest = None
 
                 # Flush any stale state
@@ -96,11 +103,19 @@ class VaisalaDaemon:
                     match = self._regex.match(data)
 
                     if match:
+                        latest = {
+                            'date': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                        }
+
+                        for field in DATA_FIELDS:
+                            latest.update({
+                                field: float(match.group(field)),
+                                field+'_valid': match.group(field+'_status') == DATA_FIELDS[field]
+                            })
+
                         with self._lock:
-                            self._latest = {k: float(v) for k, v
-                                            in match.groupdict().items()}
-                            self._latest['date'] = datetime.datetime.utcnow() \
-                                .strftime('%Y-%m-%dT%H:%M:%SZ')
+                            self._latest = latest
+
             except Exception as exception:
                 self._port.close()
                 print(exception)
