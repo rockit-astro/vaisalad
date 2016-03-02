@@ -1,12 +1,12 @@
 Name:      onemetre-vaisala-server
-Version:   1.5
+Version:   1.6
 Release:   1
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station daemon for the Warwick one-metre telescope.
 License:   GPL-3.0
 Group:     Unspecified
 BuildArch: noarch
-Requires:  python3, %{?systemd_requires}
+Requires:  python3, python3-Pyro4, python3-pyserial, %{?systemd_requires}
 BuildRequires: systemd-rpm-macros
 
 %description
@@ -30,10 +30,6 @@ mkdir -p %{buildroot}%{_udevrulesdir}
 %post
 %service_add_post vaisalad.service
 %fillup_and_insserv -f -y vaisalad.service
-
-# Install python dependencies
-# This is horrible, but it seems to be the only way that actually works!
-pip3 install pyserial Pyro4
 
 %preun
 %stop_on_removal vaisalad.service
