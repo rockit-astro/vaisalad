@@ -26,6 +26,9 @@ import time
 import Pyro4
 import serial
 
+# Set automatically when generating RPM package
+SOFTWARE_VERSION = 'UNKNOWN'
+
 PYRO_HOST = '192.168.0.102'
 PYRO_PORT = 9001
 PYRO_NAME = 'vaisala_daemon'
@@ -104,7 +107,8 @@ class VaisalaDaemon:
 
                     if match:
                         latest = {
-                            'date': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ')
+                            'date': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+                            'software_version': SOFTWARE_VERSION
                         }
 
                         for field in DATA_FIELDS:
