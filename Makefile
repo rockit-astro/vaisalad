@@ -13,7 +13,16 @@ all:
 	awk '{sub("SOFTWARE_VERSION = .*$$","SOFTWARE_VERSION = \"$(SERVER_VERSION) ($(GIT_VERSION))\""); print $0}' vaisalad.bak > vaisalad
 	${RPMBUILD} -ba vaisala-server.spec
 	${RPMBUILD} -ba vaisala-client.spec
+
+	cp vaisalad-test vaisalad-test.bak
+	awk '{sub("SOFTWARE_VERSION = .*$$","SOFTWARE_VERSION = \"$(SERVER_VERSION) ($(GIT_VERSION))\""); print $0}' vaisalad-test.bak > vaisalad-test
+	cp vaisala vaisala.bak
+	awk '{sub("PYRO_HOST = .*$$","PYRO_HOST = \"localhost\""); print $0}' vaisala.bak > vaisala
+
+	${RPMBUILD} -ba vaisala-test.spec
 	mv build/noarch/*.rpm .
 	rm -rf build
 	mv vaisalad.bak vaisalad
+	mv vaisala.bak vaisala
+	mv vaisalad-test.bak vaisalad-test
 
