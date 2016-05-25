@@ -29,7 +29,7 @@ SOFTWARE_VERSION = 'UNKNOWN'
 
 PYRO_HOST = 'localhost'
 PYRO_PORT = 9001
-PYRO_NAME = 'vaisala_daemon'
+PYRO_NAME = 'onemetre_vaisala_daemon'
 
 DATA_FIELDS = [
     # Special case: skip row if false

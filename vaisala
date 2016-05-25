@@ -25,7 +25,7 @@ import Pyro4
 
 PYRO_HOST = '192.168.0.102'
 PYRO_PORT = 9001
-PYRO_NAME = 'vaisala_daemon'
+PYRO_NAME = 'onemetre_vaisala_daemon'
 PYRO_COMM_TIMEOUT = 5
 
 PYRO_URI = 'PYRO:' + PYRO_NAME + '@' + PYRO_HOST + ':' + str(PYRO_PORT)

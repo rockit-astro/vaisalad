@@ -31,7 +31,7 @@ SOFTWARE_VERSION = 'UNKNOWN'
 
 PYRO_HOST = '192.168.0.102'
 PYRO_PORT = 9001
-PYRO_NAME = 'vaisala_daemon'
+PYRO_NAME = 'onemetre_vaisala_daemon'
 
 SERIAL_PORT = '/dev/vaisala'
 SERIAL_BAUD = 4800

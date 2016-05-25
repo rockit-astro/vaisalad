@@ -1,5 +1,5 @@
 Name:      onemetre-vaisala-server
-Version:   1.7
+Version:   1.8
 Release:   0
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station daemon for the Warwick one-metre telescope.

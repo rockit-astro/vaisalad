@@ -1,6 +1,6 @@
 Name:      onemetre-vaisala-client
-Version:   1.8
-Release:   1
+Version:   1.9
+Release:   0
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station client for the Warwick one-metre telescope.
 License:   GPL-3.0
