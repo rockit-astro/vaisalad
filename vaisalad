@@ -18,8 +18,10 @@
 """Weather station daemon for the Warwick one-metre telescope"""
 
 # pylint: disable=broad-except
+# pylint: disable=invalid-name
 
 import datetime
+import math
 import re
 import threading
 import time
@@ -57,6 +59,13 @@ DATA_FIELDS = {
     'pressure': b'H',
     'accumulated_rain': b'M'
 }
+
+def dew_point(temperature, humidity):
+    """Calculates the dew point using the equation defined by the Vaisala manual"""
+    a = math.log(100 / humidity)
+    b = 15 * a - 2.1 * temperature + 2711.5
+    c = temperature + 273.16
+    return c * b / (c * a / 2 + b) - 273.16
 
 class VaisalaDaemon:
     """Daemon class that wraps the RS232 interface"""
@@ -116,6 +125,13 @@ class VaisalaDaemon:
                                 field: float(match.group(field)),
                                 field+'_valid': match.group(field+'_status') == DATA_FIELDS[field]
                             })
+
+                        dewpt = dew_point(latest['temperature'], latest['relative_humidity'])
+                        latest.update({
+                            'dew_point_delta': round(latest['temperature'] - dewpt, 2),
+                            'dew_point_delta_valid': latest['temperature_valid'] and \
+                                latest['relative_humidity_valid']
+                        })
 
                         with self._lock:
                             self._latest = latest

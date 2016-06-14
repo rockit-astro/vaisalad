@@ -47,6 +47,8 @@ DATA_FIELDS = [
     ('pressure_valid', bool),
     ('accumulated_rain', float),
     ('accumulated_rain_valid', bool)
+    ('dew_point_delta', float),
+    ('dew_point_delta_valid', bool)
 ]
 
 class SimulatedVaisalaDaemon:
