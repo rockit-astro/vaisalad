@@ -1,0 +1,9 @@
+[Unit]
+Description=Resets the Vaisala rain counter daily at 17:00
+Wants=vaisala-reset-rain.timer
+
+[Service]
+ExecStart=/usr/bin/vaisala zerorain; /usr/bin/sleep 1; /usr/bin/vaisala zerorain
+
+[Install]
+WantedBy=vaisala-reset-rain.target

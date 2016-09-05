@@ -1,5 +1,5 @@
 Name:      onemetre-vaisala-server
-Version:   1.10
+Version:   1.11
 Release:   1
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station daemon for the Warwick one-metre telescope.
@@ -22,6 +22,9 @@ mkdir -p %{buildroot}%{_udevrulesdir}
 
 %{__install} %{_sourcedir}/vaisalad %{buildroot}%{_bindir}
 %{__install} %{_sourcedir}/vaisalad.service %{buildroot}%{_unitdir}
+%{__install} %{_sourcedir}/vaisala-reset-rain.service %{buildroot}%{_unitdir}
+%{__install} %{_sourcedir}/vaisala-reset-rain.target %{buildroot}%{_unitdir}
+%{__install} %{_sourcedir}/vaisala-reset-rain.timer %{buildroot}%{_unitdir}
 %{__install} %{_sourcedir}/10-onemetre-vaisala.rules %{buildroot}%{_udevrulesdir}
 
 %pre
@@ -44,5 +47,7 @@ mkdir -p %{buildroot}%{_udevrulesdir}
 %{_udevrulesdir}/10-onemetre-vaisala.rules
 %defattr(-,root,root,-)
 %{_unitdir}/vaisalad.service
-
+%{_unitdir}/vaisala-reset-rain.service
+%{_unitdir}/vaisala-reset-rain.target
+%{_unitdir}/vaisala-reset-rain.timer
 %changelog
