@@ -1,8 +1,8 @@
 [Unit]
-Description=Resets the Vaisala rain counter daily at 17:00
+Description=Resets the Vaisala rain counter daily at 12:00
 
 [Timer]
-OnCalendar=*-*-* 17:00:00
+OnCalendar=*-*-* 12:00:00
 Unit=vaisala-reset-rain.target
 
 [Install]

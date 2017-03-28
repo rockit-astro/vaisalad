@@ -21,6 +21,7 @@ import datetime
 import json
 import os
 import sys
+import time
 import Pyro4
 import warwick.observatory as observatory
 
@@ -93,6 +94,9 @@ def reset_rain_counter():
     """Resets the accumulated rain counter"""
     try:
         with observatory.daemons.onemetre_vaisala.connect() as vaisala:
+            # The reset occasionally fails first time, so try running it twice with a short delay
+            vaisala.reset_rain_counter()
+            time.sleep(1)
             vaisala.reset_rain_counter()
     except Pyro4.errors.CommunicationError:
         print('error: unable to communicate with the Vaisala daemon')
