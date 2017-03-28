@@ -44,6 +44,7 @@ DATA_REGEX = b'0R0,' \
     b'Ua=(?P<relative_humidity>\d+\.\d)(?P<relative_humidity_status>[P\#]),' \
     b'Pa=(?P<pressure>\d+\.\d)(?P<pressure_status>[H\#]),' \
     b'Rc=(?P<accumulated_rain>\d+\.\d\d)(?P<accumulated_rain_status>[M\#]),' \
+    b'Ri=(?P<rain_intensity>\d+\.\d)(?P<rain_intensity_status>[M\#]),' \
     b'Th=(?P<heater_temperature>-?\d+\.\d)(?P<heater_temperature_status>[C\#]),' \
     b'Vh=(?P<heater_voltage>\d+\.\d)(?P<heater_voltage_status>[NVWF])\r\n'
 # pylint: enable=anomalous-backslash-in-string
@@ -54,7 +55,8 @@ DATA_FIELDS = {
     'temperature': b'C',
     'relative_humidity': b'P',
     'pressure': b'H',
-    'accumulated_rain': b'M'
+    'accumulated_rain': b'M',
+    'rain_intensity': b'M'
 }
 
 def dew_point(temperature, humidity):

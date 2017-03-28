@@ -56,6 +56,8 @@ def print_status():
                                                 latest['dew_point_delta_valid'], '\u00B0C'))
         print('      Pressure: ' + format_value(latest['pressure'],
                                                 latest['pressure_valid'], ' hPa'))
+        print('Rain Intensity: ' + format_value(latest['rain_intensity'],
+                                                latest['rain_intensity_valid'], ' mm/h'))
         print('   Accum. Rain: ' + format_value(latest['accumulated_rain'],
                                                 latest['accumulated_rain_valid'], ' mm'))
         print()
