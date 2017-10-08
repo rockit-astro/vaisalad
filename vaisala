@@ -23,7 +23,7 @@ import os
 import sys
 import time
 import Pyro4
-import warwick.observatory as observatory
+from warwick.observatory.common import daemons
 
 SCRIPT_NAME = os.path.basename(sys.argv[0])
 sys.excepthook = Pyro4.util.excepthook
@@ -36,7 +36,7 @@ def print_status():
     """Prints the latest weather data in human-readable form"""
     latest = None
     try:
-        with observatory.daemons.onemetre_vaisala.connect() as vaisala:
+        with daemons.onemetre_vaisala.connect() as vaisala:
             latest = vaisala.last_measurement()
     except Pyro4.errors.CommunicationError:
         print('error: unable to communicate with the Vaisala daemon')
@@ -80,7 +80,7 @@ def print_json():
     """Prints the latest environment data in machine-readable form"""
     latest = None
     try:
-        with observatory.daemons.onemetre_vaisala.connect() as vaisala:
+        with daemons.onemetre_vaisala.connect() as vaisala:
             latest = vaisala.last_measurement()
     except Pyro4.errors.CommunicationError:
         print('error: unable to communicate with the Vaisala daemon')
@@ -93,7 +93,7 @@ def print_json():
 def reset_rain_counter():
     """Resets the accumulated rain counter"""
     try:
-        with observatory.daemons.onemetre_vaisala.connect() as vaisala:
+        with daemons.onemetre_vaisala.connect() as vaisala:
             # The reset occasionally fails first time, so try running it twice with a short delay
             vaisala.reset_rain_counter()
             time.sleep(1)

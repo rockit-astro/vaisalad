@@ -27,7 +27,7 @@ import threading
 import time
 import Pyro4
 import serial
-import warwick.observatory as observatory
+from warwick.observatory.common import daemons, log
 
 # Set automatically when generating RPM package
 SOFTWARE_VERSION = 'UNKNOWN'
@@ -88,7 +88,7 @@ class VaisalaDaemon:
             try:
                 self._port = serial.Serial(SERIAL_PORT, SERIAL_BAUD, timeout=SERIAL_TIMEOUT)
             except Exception as exception:
-                observatory.log.error('vaisalad', 'Failed to connect to serial port (' \
+                log.error('vaisalad', 'Failed to connect to serial port (' \
                                       + str(exception) + ')')
                 print(exception)
                 print('Will retry in 10 seconds...')
@@ -139,7 +139,7 @@ class VaisalaDaemon:
 
             except Exception as exception:
                 self._port.close()
-                observatory.log.error('vaisalad', 'Failed to read serial port (' \
+                log.error('vaisalad', 'Failed to read serial port (' \
                                       + str(exception) + ')')
                 print(exception)
                 print('Will retry in 10 seconds...')
@@ -157,4 +157,4 @@ class VaisalaDaemon:
         self._send_rain_reset = True
 
 if __name__ == '__main__':
-    observatory.daemons.onemetre_vaisala.launch(VaisalaDaemon())
+    daemons.onemetre_vaisala.launch(VaisalaDaemon())
