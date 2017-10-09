@@ -71,10 +71,10 @@ class VaisalaDaemon:
     def __init__(self):
         self._lock = threading.Lock()
         self._running = True
-        self._last_error = datetime.datetime.min
         self._regex = re.compile(DATA_REGEX)
         self._latest = None
         self._port = None
+        self._port_error = False
         self._send_rain_reset = False
 
         runloop = threading.Thread(target=self.run)
@@ -87,16 +87,22 @@ class VaisalaDaemon:
             # Initial setup
             try:
                 self._port = serial.Serial(SERIAL_PORT, SERIAL_BAUD, timeout=SERIAL_TIMEOUT)
+                print('Connected to', SERIAL_PORT)
+                prefix = 'Restored' if self._port_error else 'Established'
+                log.info('vaisalad', prefix + ' serial connection to vaisala')
+                self._port_error = False
             except Exception as exception:
-                log.error('vaisalad', 'Failed to connect to serial port (' \
-                                      + str(exception) + ')')
                 print(exception)
                 print('Will retry in 10 seconds...')
+                if not self._port_error:
+                    log.error('vaisalad', 'Failed to connect to vaisala')
+
+                self._port_error = True
+
                 time.sleep(10.)
                 continue
 
             try:
-                print('Connected to', SERIAL_PORT)
                 self._latest = None
 
                 # Flush any stale state
@@ -139,10 +145,11 @@ class VaisalaDaemon:
 
             except Exception as exception:
                 self._port.close()
-                log.error('vaisalad', 'Failed to read serial port (' \
-                                      + str(exception) + ')')
                 print(exception)
                 print('Will retry in 10 seconds...')
+                if not self._port_error:
+                    log.error('vaisalad', 'Lost serial connection to vaisala')
+                self._port_error = True
                 time.sleep(10.)
 
     @Pyro4.expose
