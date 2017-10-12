@@ -1,5 +1,5 @@
 Name:      onemetre-vaisala-server
-Version:   2.1
+Version:   2.1.1
 Release:   0
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station daemon for the Warwick one-metre telescope.
@@ -7,7 +7,7 @@ License:   GPL-3.0
 Group:     Unspecified
 BuildArch: noarch
 %if 0%{?suse_version}
-Requires:  python3, python3-Pyro4, python3-pyserial, python3-warwick-observatory-common, observatory-log-client, %{?systemd_requires}
+Requires:  python3, python34-Pyro4, python34-pyserial, python34-warwick-observatory-common, observatory-log-client, %{?systemd_requires}
 BuildRequires: systemd-rpm-macros
 %endif
 %if 0%{?centos_ver}
