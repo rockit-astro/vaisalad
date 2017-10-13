@@ -27,7 +27,8 @@ import threading
 import time
 import Pyro4
 import serial
-from warwick.observatory.common import daemons, log
+from warwick.observatory.common import daemons, log, IP
+from warwick.observatory.common.helpers import pyro_client_matches
 
 # Set automatically when generating RPM package
 SOFTWARE_VERSION = 'UNKNOWN'
@@ -35,6 +36,9 @@ SOFTWARE_VERSION = 'UNKNOWN'
 SERIAL_PORT = '/dev/vaisala'
 SERIAL_BAUD = 4800
 SERIAL_TIMEOUT = 5
+
+# Machines that are allowed to reset the rain counter
+RAIN_RESET_IPS = [IP.OneMetreDome, IP.OneMetreTCS, IP.NitesMain]
 
 # pylint: disable=anomalous-backslash-in-string
 DATA_REGEX = b'0R0,' \
@@ -161,7 +165,11 @@ class VaisalaDaemon:
     @Pyro4.expose
     def reset_rain_counter(self):
         """Reset the accumulated rain counter"""
+        if not pyro_client_matches(RAIN_RESET_IPS):
+            return False
+
         self._send_rain_reset = True
+        return True
 
 if __name__ == '__main__':
     daemons.onemetre_vaisala.launch(VaisalaDaemon())

@@ -94,8 +94,12 @@ def reset_rain_counter():
     """Resets the accumulated rain counter"""
     try:
         with daemons.onemetre_vaisala.connect() as vaisala:
+            success = vaisala.reset_rain_counter()
+            if not success:
+                print('error: command not accepted from this IP')
+                return 1
+
             # The reset occasionally fails first time, so try running it twice with a short delay
-            vaisala.reset_rain_counter()
             time.sleep(1)
             vaisala.reset_rain_counter()
     except Pyro4.errors.CommunicationError:
@@ -127,4 +131,3 @@ if __name__ == '__main__':
 
     # Command not found
     sys.exit(print_usage(SCRIPT_NAME))
-
