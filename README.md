@@ -25,6 +25,12 @@ sudo systemctl enable vaisala-reset-rain.timer
 sudo systemctl start vaisala-reset-rain.timer
 ```
 
+Finally, open a port in the firewall so that other machines on the network can access the daemon:
+```
+sudo firewall-cmd --zone=public --add-port=9001/tcp --permanent
+sudo firewall-cmd --reload
+```
+
 ### Hardware Setup
 
 The Vaisala unit should be configured with 4800 8N1 with no flow control.
