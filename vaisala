@@ -25,6 +25,8 @@ import time
 import Pyro4
 from warwick.observatory.common import daemons
 
+# pylint: disable=invalid-name
+
 SCRIPT_NAME = os.path.basename(sys.argv[0])
 sys.excepthook = Pyro4.util.excepthook
 
@@ -32,16 +34,25 @@ FMT_RED = u'\033[91m'
 FMT_BOLD = u'\033[1m'
 FMT_CLEAR = u'\033[0m'
 
-def print_status():
-    """Prints the latest weather data in human-readable form"""
-    latest = None
+DAEMONS = {
+    'onemetre': daemons.onemetre_vaisala,
+    'goto': daemons.goto_vaisala
+}
+
+def run_command(daemon, command):
+    """Prints the message associated with a status code and returns the code"""
     try:
-        with daemons.onemetre_vaisala.connect() as vaisala:
-            latest = vaisala.last_measurement()
+        ret = command(daemon)
     except Pyro4.errors.CommunicationError:
         print('error: unable to communicate with the Vaisala daemon')
-        return 1
+        ret = 1
 
+    return ret
+
+def print_status(daemon):
+    """Prints the latest weather data in human-readable form"""
+    with daemon.connect() as vaisala:
+        latest = vaisala.last_measurement()
     if latest is not None:
         date = datetime.datetime.strptime(latest['date'], '%Y-%m-%dT%H:%M:%SZ')
         print('Data received ' + FMT_BOLD + str(date) + FMT_CLEAR)
@@ -76,40 +87,29 @@ def format_value(data, valid, suffix=''):
     ret += FMT_CLEAR
     return ret
 
-def print_json():
+def print_json(daemon):
     """Prints the latest environment data in machine-readable form"""
-    latest = None
-    try:
-        with daemons.onemetre_vaisala.connect() as vaisala:
-            latest = vaisala.last_measurement()
-    except Pyro4.errors.CommunicationError:
-        print('error: unable to communicate with the Vaisala daemon')
-        return 1
-
+    with daemon.connect() as vaisala:
+        latest = vaisala.last_measurement()
     print(json.dumps(latest))
-
     return 0
 
-def reset_rain_counter():
+def reset_rain_counter(daemon):
     """Resets the accumulated rain counter"""
-    try:
-        with daemons.onemetre_vaisala.connect() as vaisala:
-            success = vaisala.reset_rain_counter()
-            if not success:
-                print('error: command not accepted from this IP')
-                return 1
-
-            # The reset occasionally fails first time, so try running it twice with a short delay
-            time.sleep(1)
-            vaisala.reset_rain_counter()
-    except Pyro4.errors.CommunicationError:
-        print('error: unable to communicate with the Vaisala daemon')
+    with daemon.connect() as vaisala:
+        success = vaisala.reset_rain_counter()
+    if not success:
+        print('error: command not accepted from this IP')
         return 1
+
+    # The reset occasionally fails first time, so try running it twice with a short delay
+    time.sleep(1)
+    vaisala.reset_rain_counter()
     return 0
 
-def print_usage(name):
+def print_usage():
     """Prints the utility help"""
-    print('Usage: {} <command>'.format(name))
+    print('Usage: {} [onemetre|goto] <command>'.format(SCRIPT_NAME))
     print()
     print('   status      print a human-readable summary of the Vaisala status')
     print('   json        print a machine-readable summary of the Vaisala status')
@@ -119,15 +119,16 @@ def print_usage(name):
     return 1
 
 if __name__ == '__main__':
-    if len(sys.argv) == 1:
-        sys.exit(print_usage(SCRIPT_NAME))
+    if len(sys.argv) < 3:
+        sys.exit(print_usage())
 
-    if sys.argv[1] == 'status':
-        sys.exit(print_status())
-    elif sys.argv[1] == 'json':
-        sys.exit(print_json())
-    elif sys.argv[1] == 'zerorain':
-        sys.exit(reset_rain_counter())
+    commands = {
+        'status': print_status,
+        'json': print_json,
+        'zerorain': reset_rain_counter
+    }
 
-    # Command not found
-    sys.exit(print_usage(SCRIPT_NAME))
+    if sys.argv[1] not in DAEMONS or sys.argv[2] not in commands:
+        sys.exit(print_usage())
+
+    sys.exit(run_command(DAEMONS[sys.argv[1]], commands[sys.argv[2]]))

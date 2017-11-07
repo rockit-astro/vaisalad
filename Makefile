@@ -12,7 +12,8 @@ all:
 	cp vaisalad vaisalad.bak
 	awk '{sub("SOFTWARE_VERSION = .*$$","SOFTWARE_VERSION = \"$(SERVER_VERSION) ($(GIT_VERSION))\""); print $0}' vaisalad.bak > vaisalad
 	${RPMBUILD} -ba onemetre-vaisala-server.spec
-	${RPMBUILD} -ba onemetre-vaisala-client.spec
+	${RPMBUILD} -ba goto-vaisala-server.spec
+	${RPMBUILD} -ba observatory-vaisala-client.spec
 
 	mv build/noarch/*.rpm .
 	rm -rf build

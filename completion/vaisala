@@ -1,9 +1,19 @@
 _vaisala()
 {
-    local cur opts
+    compopt +o default
+    local cur prev opts
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
-    opts="status json zerorain"
+    prev="${COMP_WORDS[COMP_CWORD-1]}"
+    opts="onemetre goto"
+
+    case "${prev}" in
+        onemetre|goto)
+            opts="status json zerorain"
+            ;;
+        *)
+            ;;
+    esac
 
     COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
     return 0

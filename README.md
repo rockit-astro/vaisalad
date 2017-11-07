@@ -1,15 +1,17 @@
 ## W1m Vaisala weather station daemon [![Travis CI build status](https://travis-ci.org/warwick-one-metre/vaisalad.svg?branch=master)](https://travis-ci.org/warwick-one-metre/vaisalad)
 
-Part of the observatory software for the Warwick one-meter telescope.
+Part of the observatory software for the Warwick La Palma telescopes.
 
-`vaisalad` wraps a Vaisala WXT520 weather station attached via a USB-RS232 adaptor and
+`vaisalad` wraps a Vaisala WXT520/WXT530 weather station attached via a USB-RS232 adaptor and
 makes the latest measurement available for other services via Pyro.
 
-`vaisala` is a commandline utility that prints the latest measurement in a human-readable form.
+`vaisala` is a commandline utility that prints the latest measurements in a human-readable form.
+
+An additional `vaisala-reset-rain` service runs on gotoserver and resets the accumulated rain count each day at 12:00.
 
 See [Software Infrastructure](https://github.com/warwick-one-metre/docs/wiki/Software-Infrastructure) for an overview of the W1m software architecture and instructions for developing and deploying the code.
 
-### Software Setup
+### Software Setup (W1m)
 
 The `vaisalad` service will be automatically started when the USB-Serial converter with serial number `FTYQH2HQ` is plugged in to the machine.
 If this ever changes then the udev rule in `10-onemetre-vaisala.rules` should be updated to match.
@@ -17,6 +19,24 @@ If this ever changes then the udev rule in `10-onemetre-vaisala.rules` should be
 If the `onemetre-vaisala-server` package is (re-)installed after the device is attached then it may be manually started using
 ```
 sudo systemctl vaisalad start
+```
+
+Finally, open a port in the firewall so that other machines on the network can access the daemon:
+```
+sudo firewall-cmd --zone=public --add-port=9001/tcp --permanent
+sudo firewall-cmd --reload
+```
+
+Note that the `vaisala-reset-rain` service runs on gotoserver and is covered under the GOTO instructions.
+
+### Software Setup (GOTO)
+
+The `vaisalad` service will be automatically started when the USB-Serial converter with serial number `FTB3L8SI` is plugged in to the machine.
+If this ever changes then the udev rule in `10-goto-vaisala.rules` should be updated to match.
+
+If the `goto-vaisala-server` package is (re-)installed after the device is attached then it may be manually started using
+```
+sudo systemctl goto-vaisalad start
 ```
 
 The `vaisala-reset-rain` service must be enabled after installation using
@@ -27,9 +47,10 @@ sudo systemctl start vaisala-reset-rain.timer
 
 Finally, open a port in the firewall so that other machines on the network can access the daemon:
 ```
-sudo firewall-cmd --zone=public --add-port=9001/tcp --permanent
+sudo firewall-cmd --zone=public --add-port=9022/tcp --permanent
 sudo firewall-cmd --reload
 ```
+
 
 ### Hardware Setup
 

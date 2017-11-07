@@ -1,0 +1,15 @@
+[Unit]
+Description=Daemon for exposing an attached Vaisala WXT530 weather station via Pyro.
+After=syslog.target
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Restart=on-failure
+Type=simple
+ExecStart=/usr/bin/env python3.4 -u /usr/bin/vaisalad goto
+ExecStartPost=/usr/bin/env python3.4 -u /usr/bin/obslog info goto-vaisalad Started by systemd
+ExecStopPost=/usr/bin/env python3.4 -u /usr/bin/obslog info goto-vaisalad Stopped by systemd
+StandardOutput=syslog
+StandardError=syslog
+

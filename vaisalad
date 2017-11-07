@@ -19,7 +19,11 @@
 
 # pylint: disable=broad-except
 # pylint: disable=invalid-name
+# pylint: disable=too-many-arguments
+# pylint: disable=too-many-instance-attributes
+# pylint: disable=too-few-public-methods
 
+import argparse
 import datetime
 import math
 import re
@@ -31,14 +35,24 @@ from warwick.observatory.common import daemons, log, IP
 from warwick.observatory.common.helpers import pyro_client_matches
 
 # Set automatically when generating RPM package
-SOFTWARE_VERSION = 'UNKNOWN'
+SOFTWARE_VERSION = "2.2.0 (git-b82d1a4)"
 
-SERIAL_PORT = '/dev/vaisala'
-SERIAL_BAUD = 4800
-SERIAL_TIMEOUT = 5
+class VaisalaConfig:
+    """Helper class containing vaisala configuration values"""
+    def __init__(self, log_name, daemon, control_ips,
+                 serial_port='/dev/vaisala', serial_baud=4800, serial_timeout_seconds=5):
+        self.log_name = log_name
+        self.daemon = daemon
+        self.control_ips = control_ips
+        self.serial_port = serial_port
+        self.serial_baud = serial_baud
+        self.serial_timeout_seconds = serial_timeout_seconds
 
-# Machines that are allowed to reset the rain counter
-RAIN_RESET_IPS = [IP.OneMetreDome, IP.OneMetreTCS, IP.NitesMain]
+RESET_RAIN_IPS = [IP.OneMetreDome, IP.OneMetreTCS, IP.NitesMain, IP.GOTOServer]
+CONFIG = {
+    'onemetre' : VaisalaConfig('vaisalad', daemons.onemetre_vaisala, RESET_RAIN_IPS),
+    'goto' : VaisalaConfig('goto_vaisalad', daemons.goto_vaisala, RESET_RAIN_IPS)
+}
 
 # pylint: disable=anomalous-backslash-in-string
 DATA_REGEX = b'0R0,' \
@@ -72,7 +86,8 @@ def dew_point(temperature, humidity):
 
 class VaisalaDaemon:
     """Daemon class that wraps the RS232 interface"""
-    def __init__(self):
+    def __init__(self, config):
+        self._config = config
         self._lock = threading.Lock()
         self._running = True
         self._regex = re.compile(DATA_REGEX)
@@ -90,16 +105,17 @@ class VaisalaDaemon:
         while self._running:
             # Initial setup
             try:
-                self._port = serial.Serial(SERIAL_PORT, SERIAL_BAUD, timeout=SERIAL_TIMEOUT)
-                print('Connected to', SERIAL_PORT)
+                self._port = serial.Serial(self._config.serial_port, self._config.serial_baud,
+                                           timeout=self._config.serial_timeout_seconds)
+                print('Connected to', self._config.serial_port)
                 prefix = 'Restored' if self._port_error else 'Established'
-                log.info('vaisalad', prefix + ' serial connection to vaisala')
+                log.info(self._config.log_name, prefix + ' serial connection to vaisala')
                 self._port_error = False
             except Exception as exception:
                 print(exception)
                 print('Will retry in 10 seconds...')
                 if not self._port_error:
-                    log.error('vaisalad', 'Failed to connect to vaisala')
+                    log.error(self._config.log_name, 'Failed to connect to vaisala')
 
                 self._port_error = True
 
@@ -152,7 +168,7 @@ class VaisalaDaemon:
                 print(exception)
                 print('Will retry in 10 seconds...')
                 if not self._port_error:
-                    log.error('vaisalad', 'Lost serial connection to vaisala')
+                    log.error(self._config.log_name, 'Lost serial connection to vaisala')
                 self._port_error = True
                 time.sleep(10.)
 
@@ -165,11 +181,15 @@ class VaisalaDaemon:
     @Pyro4.expose
     def reset_rain_counter(self):
         """Reset the accumulated rain counter"""
-        if not pyro_client_matches(RAIN_RESET_IPS):
+        if not pyro_client_matches(self._config['reset_rain_ips']):
             return False
 
         self._send_rain_reset = True
         return True
 
 if __name__ == '__main__':
-    daemons.onemetre_vaisala.launch(VaisalaDaemon())
+    parser = argparse.ArgumentParser(description='Vaisala Server')
+    parser.add_argument('unit', choices=CONFIG.keys(), help='Select a unit')
+    args = parser.parse_args()
+    unit = CONFIG[args.unit]
+    unit.daemon.launch(VaisalaDaemon(unit))
