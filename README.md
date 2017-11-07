@@ -33,10 +33,18 @@ sudo firewall-cmd --reload
 
 ### Hardware Setup
 
-The Vaisala unit should be configured with 4800 8N1 with no flow control.
-
-The message parsing expects the general status message 0R0 to include Dm,Sm,Ta,Ua,Pa,Rc,Ri,Th,Vh parameters in metric units.
-This can be set if necessary by sending the following command:
+The Vaisala unit should be configured with 4800 8N1 with no flow control. Set this by sending:
 ```
-0RU,R=11111100&10100000,I=60,U=M,S=M,M=R,Z=M
+0XU,A=0,M=A,C=2,I=5,B=4800,D=8,P=N,S=1,L=25<cr><lf>
+```
+through minicom (write this to a file, replacing &lt;cr&gt; with 0x0D and &lt;lf&gt; with 0x0A and then use the send file command)
+
+The default parameters are almost correct, but need to modify the rain sensor to add Ri (rain intensity) and remove Rd (rain duration) to/from the composite message:
+```
+0RU,R=&10100000<cr><lf>
+```
+
+and change the wind speed unit from m/s to km/h:
+```
+0WU,U=K<cr><lf>
 ```
