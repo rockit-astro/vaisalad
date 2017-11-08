@@ -135,7 +135,7 @@ class VaisalaDaemon:
                 # Main run loop
                 while self._running:
                     if self._send_rain_reset:
-                        self._port.write('0XZRU\r\n'.encode('ascii'))
+                        self._port.write('\r\n0XZRU\r\n'.encode('ascii'))
                         self._send_rain_reset = False
 
                     data = self._port.readline()
@@ -181,7 +181,7 @@ class VaisalaDaemon:
     @Pyro4.expose
     def reset_rain_counter(self):
         """Reset the accumulated rain counter"""
-        if not pyro_client_matches(self._config['reset_rain_ips']):
+        if not pyro_client_matches(self._config.control_ips):
             return False
 
         self._send_rain_reset = True
