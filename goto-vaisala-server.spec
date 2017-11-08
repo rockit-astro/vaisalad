@@ -1,5 +1,5 @@
 Name:      goto-vaisala-server
-Version:   2.3.1
+Version:   2.3.2
 Release:   0
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station daemon for GOTO.
