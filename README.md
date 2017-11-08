@@ -18,7 +18,7 @@ If this ever changes then the udev rule in `10-onemetre-vaisala.rules` should be
 
 If the `onemetre-vaisala-server` package is (re-)installed after the device is attached then it may be manually started using
 ```
-sudo systemctl vaisalad start
+sudo systemctl start vaisalad
 ```
 
 Finally, open a port in the firewall so that other machines on the network can access the daemon:
@@ -36,7 +36,7 @@ If this ever changes then the udev rule in `10-goto-vaisala.rules` should be upd
 
 If the `goto-vaisala-server` package is (re-)installed after the device is attached then it may be manually started using
 ```
-sudo systemctl goto-vaisalad start
+sudo systemctl start goto-vaisalad
 ```
 
 The `vaisala-reset-rain` service must be enabled after installation using
