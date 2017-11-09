@@ -5,9 +5,9 @@ Part of the observatory software for the Warwick La Palma telescopes.
 `vaisalad` wraps a Vaisala WXT520/WXT530 weather station attached via a USB-RS232 adaptor and
 makes the latest measurement available for other services via Pyro.
 
-`vaisala` is a commandline utility that prints the latest measurements in a human-readable form.
+`vaisala` is a commandline utility that reports the latest data from the onemetre or GOTO weather stations.
 
-An additional `vaisala-reset-rain` service runs on gotoserver and resets the accumulated rain count each day at 12:00.
+An additional `vaisala-reset-rain` service runs on `gotoserver` to reset the accumulated rain count each day at 12:00.
 
 See [Software Infrastructure](https://github.com/warwick-one-metre/docs/wiki/Software-Infrastructure) for an overview of the W1m software architecture and instructions for developing and deploying the code.
 
@@ -50,7 +50,6 @@ Finally, open a port in the firewall so that other machines on the network can a
 sudo firewall-cmd --zone=public --add-port=9022/tcp --permanent
 sudo firewall-cmd --reload
 ```
-
 
 ### Hardware Setup
 
