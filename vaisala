@@ -91,7 +91,7 @@ def print_json(daemon):
     """Prints the latest environment data in machine-readable form"""
     with daemon.connect() as vaisala:
         latest = vaisala.last_measurement()
-    print(json.dumps(latest))
+    print(json.dumps(latest or {}))
     return 0
 
 def reset_rain_counter(daemon):
