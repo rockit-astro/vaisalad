@@ -35,7 +35,7 @@ from warwick.observatory.common import daemons, log, IP
 from warwick.observatory.common.helpers import pyro_client_matches
 
 # Set automatically when generating RPM package
-SOFTWARE_VERSION = "2.2.0 (git-b82d1a4)"
+SOFTWARE_VERSION = "UNKNOWN"
 
 class VaisalaConfig:
     """Helper class containing vaisala configuration values"""
