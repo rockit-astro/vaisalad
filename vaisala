@@ -51,37 +51,36 @@ def run_command(daemon, command):
 
 def print_status(daemon):
     """Prints the latest weather data in human-readable form"""
-    with daemon.connect() as vaisala:
-        latest = vaisala.last_measurement()
-    if latest is not None:
+    latest = None
+    try:
+        with daemon.connect() as vaisala:
+            latest = vaisala.last_measurement()
+            sensors = vaisala.measurement_sensors()
+    except Pyro4.errors.CommunicationError:
+        print('error: unable to communicate with Vaisala daemon')
+        return 1
+
+    if latest is not None and sensors is not None:
         date = datetime.datetime.strptime(latest['date'], '%Y-%m-%dT%H:%M:%SZ')
-        print('Data received ' + FMT_BOLD + str(date) + FMT_CLEAR)
-        print('Wind Direction: ' + format_value(latest['wind_direction'],
-                                                latest['wind_direction_valid'], '\u00B0'))
-        print('     Wind Gust: ' + format_value(latest['wind_gust'],
-                                                latest['wind_gust_valid'], ' km/h'))
-        print('     Wind Lull: ' + format_value(latest['wind_lull'],
-                                                latest['wind_lull_valid'], ' km/h'))
-        print('      Wind Avg: ' + format_value(latest['wind_speed'],
-                                                latest['wind_speed_valid'], ' km/h'))
-        print('   Temperature: ' + format_value(latest['temperature'],
-                                                latest['temperature_valid'], '\u00B0C'))
-        print(' Rel. Humidity: ' + format_value(latest['relative_humidity'],
-                                                latest['relative_humidity_valid'], ' %RH'))
-        print('Temp. > DewPt.: ' + format_value(latest['dew_point_delta'],
-                                                latest['dew_point_delta_valid'], '\u00B0C'))
-        print('      Pressure: ' + format_value(latest['pressure'],
-                                                latest['pressure_valid'], ' hPa'))
-        print('Rain Intensity: ' + format_value(latest['rain_intensity'],
-                                                latest['rain_intensity_valid'], ' mm/h'))
-        print('   Accum. Rain: ' + format_value(latest['accumulated_rain'],
-                                                latest['accumulated_rain_valid'], ' mm'))
+        print('Data received \033[1m{}\033[0m:'.format(date))
+
+        # Find the longest label to set the parameter indent
+        max_label_length = 0
+        for s in sensors.values():
+            max_label_length = max(max_label_length, len(s['label']))
+
+        for key, s in sensors.items():
+            label_padding = max_label_length - len(s['label'])
+            line = ' ' * label_padding + s['label'] + ': '
+            line += format_value(latest[key], latest[key + '_valid'], ' ' + s['units'])
+            print(line)
         print()
     else:
-        print('error: no data available')
+        print('error: failed to query data')
         return 1
 
     return 0
+
 
 def format_value(data, valid, suffix=''):
     """Builds a formatted string with a value"""

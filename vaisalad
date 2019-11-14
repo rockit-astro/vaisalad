@@ -81,6 +81,49 @@ DATA_FIELDS = {
     'rain_intensity': b'M'
 }
 
+DATA_SENSORS = {
+    'wind_gust': {
+        'label': 'Wind Gust',
+        'units': 'km/h'
+    },
+    'wind_lull': {
+        'label': 'Wind Lull',
+        'units': 'km/h'
+    },
+    'wind_speed': {
+        'label': 'Wind Avg',
+        'units': 'km/h'
+    },
+    'wind_direction': {
+        'label': 'Wind Direction',
+        'units': '\u00B0'
+    },
+    'temperature': {
+        'label': 'Temperature',
+        'units': '\u00B0C'
+    },
+    'relative_humidity': {
+        'label': 'Rel. Humidity',
+        'units': '%RH'
+    },
+    'dew_point_delta': {
+        'label': 'Temp. > DewPt.',
+        'units': '\u00B0C'
+    },
+    'pressure': {
+        'label': 'Pressure',
+        'units': 'hPa'
+    },
+    'rain_intensity': {
+        'label': 'Rain Intensity',
+        'units': 'mm/h'
+    },
+    'accumulated_rain': {
+        'label': 'Accum. Rain',
+        'units': 'mm'
+    }
+}
+
 def dew_point(temperature, humidity):
     """Calculates the dew point using the equation defined by the Vaisala manual"""
     a = math.log(100 / humidity)
@@ -180,6 +223,13 @@ class VaisalaDaemon:
         """Query the latest valid measurement."""
         with self._lock:
             return self._latest
+
+    @Pyro4.expose
+    def measurement_sensors(self):
+        """
+        Returns a dictionary of sensor definitions
+        """
+        return DATA_SENSORS
 
     @Pyro4.expose
     def reset_rain_counter(self):
