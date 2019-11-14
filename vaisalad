@@ -54,31 +54,30 @@ CONFIG = {
     'goto' : VaisalaConfig('goto_vaisalad', daemons.goto_vaisala, RESET_RAIN_IPS)
 }
 
-# pylint: disable=anomalous-backslash-in-string
-DATA_REGEX = b'0R0,' \
-    b'Dm=(?P<wind_direction>\d+)(?P<wind_direction_status>[D\#]),' \
-    b'Sn=(?P<wind_lull>\d+\.\d)(?P<wind_lull_status>[K\#]),' \
-    b'Sm=(?P<wind_speed>\d+\.\d)(?P<wind_speed_status>[K\#]),' \
-    b'Sx=(?P<wind_gust>\d+\.\d)(?P<wind_gust_status>[K\#]),' \
-    b'Ta=(?P<temperature>-?\d+\.\d)(?P<temperature_status>[C\#]),' \
-    b'Ua=(?P<relative_humidity>\d+\.\d)(?P<relative_humidity_status>[P\#]),' \
-    b'Pa=(?P<pressure>\d+\.\d)(?P<pressure_status>[H\#]),' \
-    b'Rc=(?P<accumulated_rain>\d+\.\d\d)(?P<accumulated_rain_status>[M\#]),' \
-    b'Ri=(?P<rain_intensity>\d+\.\d)(?P<rain_intensity_status>[M\#]),' \
-    b'Th=(?P<heater_temperature>-?\d+\.\d)(?P<heater_temperature_status>[C\#]),' \
-    b'Vh=(?P<heater_voltage>\d+\.\d)(?P<heater_voltage_status>[NVWF])\r\n'
-# pylint: enable=anomalous-backslash-in-string
+DATA_REGEX = r'0R0,' \
+    r'Dm=(?P<wind_direction>\d+)(?P<wind_direction_status>[D\#]),' \
+    r'Sn=(?P<wind_lull>\d+\.\d)(?P<wind_lull_status>[K\#]),' \
+    r'Sm=(?P<wind_speed>\d+\.\d)(?P<wind_speed_status>[K\#]),' \
+    r'Sx=(?P<wind_gust>\d+\.\d)(?P<wind_gust_status>[K\#]),' \
+    r'Ta=(?P<temperature>-?\d+\.\d)(?P<temperature_status>[C\#]),' \
+    r'Ua=(?P<relative_humidity>\d+\.\d)(?P<relative_humidity_status>[P\#]),' \
+    r'Pa=(?P<pressure>\d+\.\d)(?P<pressure_status>[H\#]),' \
+    r'Rc=(?P<accumulated_rain>\d+\.\d\d)(?P<accumulated_rain_status>[M\#]),' \
+    r'Ri=(?P<rain_intensity>\d+\.\d)(?P<rain_intensity_status>[M\#]),' \
+    r'Th=(?P<heater_temperature>-?\d+\.\d)(?P<heater_temperature_status>[C\#]),' \
+    r'Vh=(?P<heater_voltage>\d+\.\d)(?P<heater_voltage_status>[NVWF])\r\n'
+
 
 DATA_FIELDS = {
-    'wind_direction': b'D',
-    'wind_lull': b'K',
-    'wind_speed': b'K',
-    'wind_gust': b'K',
-    'temperature': b'C',
-    'relative_humidity': b'P',
-    'pressure': b'H',
-    'accumulated_rain': b'M',
-    'rain_intensity': b'M'
+    'wind_direction': 'D',
+    'wind_lull': 'K',
+    'wind_speed': 'K',
+    'wind_gust': 'K',
+    'temperature': 'C',
+    'relative_humidity': 'P',
+    'pressure': 'H',
+    'accumulated_rain': 'M',
+    'rain_intensity': 'M'
 }
 
 DATA_SENSORS = {
@@ -185,7 +184,7 @@ class VaisalaDaemon:
                         self._port.write('\r\n0XZRU\r\n'.encode('ascii'))
                         self._send_rain_reset = False
 
-                    data = self._port.readline()
+                    data = self._port.readline().decode('ascii')
                     match = self._regex.match(data)
                     if match:
                         latest = {
