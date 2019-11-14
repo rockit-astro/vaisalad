@@ -57,7 +57,9 @@ CONFIG = {
 # pylint: disable=anomalous-backslash-in-string
 DATA_REGEX = b'0R0,' \
     b'Dm=(?P<wind_direction>\d+)(?P<wind_direction_status>[D\#]),' \
+    b'Sn=(?P<wind_lull>\d+\.\d)(?P<wind_lull_status>[K\#]),' \
     b'Sm=(?P<wind_speed>\d+\.\d)(?P<wind_speed_status>[K\#]),' \
+    b'Sx=(?P<wind_gust>\d+\.\d)(?P<wind_gust_status>[K\#]),' \
     b'Ta=(?P<temperature>-?\d+\.\d)(?P<temperature_status>[C\#]),' \
     b'Ua=(?P<relative_humidity>\d+\.\d)(?P<relative_humidity_status>[P\#]),' \
     b'Pa=(?P<pressure>\d+\.\d)(?P<pressure_status>[H\#]),' \
@@ -69,7 +71,9 @@ DATA_REGEX = b'0R0,' \
 
 DATA_FIELDS = {
     'wind_direction': b'D',
+    'wind_lull': b'K',
     'wind_speed': b'K',
+    'wind_gust': b'K',
     'temperature': b'C',
     'relative_humidity': b'P',
     'pressure': b'H',
@@ -140,7 +144,6 @@ class VaisalaDaemon:
 
                     data = self._port.readline()
                     match = self._regex.match(data)
-
                     if match:
                         latest = {
                             'date': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),

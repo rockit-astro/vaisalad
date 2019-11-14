@@ -55,16 +55,13 @@ sudo firewall-cmd --reload
 
 The Vaisala unit should be configured with 4800 8N1 with no flow control. Set this by sending:
 ```
-0XU,A=0,M=A,C=2,I=5,B=4800,D=8,P=N,S=1,L=25<cr><lf>
+0XU,A=0,M=A,C=2,I=5,B=4800,D=8,P=N,S=1,L=25\r\n
 ```
-through minicom (write this to a file, replacing &lt;cr&gt; with 0x0D and &lt;lf&gt; with 0x0A and then use the send file command)
+through minicom or python.
 
-The default parameters are almost correct, but need to modify the rain sensor to add Ri (rain intensity) and remove Rd (rain duration) to/from the composite message:
+Change the wind and rain measurements by sending:
 ```
-0RU,R=&10100000<cr><lf>
+0RU,R=1111110010100000,U=K\r\n
+0WU,R=1111110001011100,G=3,A=30\r\n
 ```
 
-and change the wind speed unit from m/s to km/h:
-```
-0WU,U=K<cr><lf>
-```

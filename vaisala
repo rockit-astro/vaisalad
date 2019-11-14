@@ -58,7 +58,11 @@ def print_status(daemon):
         print('Data received ' + FMT_BOLD + str(date) + FMT_CLEAR)
         print('Wind Direction: ' + format_value(latest['wind_direction'],
                                                 latest['wind_direction_valid'], '\u00B0'))
-        print('    Wind Speed: ' + format_value(latest['wind_speed'],
+        print('     Wind Gust: ' + format_value(latest['wind_gust'],
+                                                latest['wind_gust_valid'], ' km/h'))
+        print('     Wind Lull: ' + format_value(latest['wind_lull'],
+                                                latest['wind_lull_valid'], ' km/h'))
+        print('      Wind Avg: ' + format_value(latest['wind_speed'],
                                                 latest['wind_speed_valid'], ' km/h'))
         print('   Temperature: ' + format_value(latest['temperature'],
                                                 latest['temperature_valid'], '\u00B0C'))
