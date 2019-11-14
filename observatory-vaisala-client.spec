@@ -1,5 +1,5 @@
 Name:      observatory-vaisala-client
-Version:   2.5.0
+Version:   3.0.0
 Release:   0
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station client for the Warwick La Palma telescopes.

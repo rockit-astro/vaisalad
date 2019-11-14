@@ -1,12 +1,12 @@
 Name:      goto-vaisala-server
-Version:   2.5.0
+Version:   3.0.0
 Release:   0
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station daemon for GOTO.
 License:   GPL-3.0
 Group:     Unspecified
 BuildArch: noarch
-Requires:  python36, python36-Pyro4, python36-pyserial, python36-warwick-observatory-common
+Requires:  python36, python36-Pyro4, python36-pyserial, python36-warwick-observatory-common, python36-warwick-observatory-vaisala
 Requires:  observatory-log-client, %{?systemd_requires}
 
 %description
@@ -19,13 +19,15 @@ makes the latest measurement available for other services via Pyro.
 mkdir -p %{buildroot}%{_bindir}
 mkdir -p %{buildroot}%{_unitdir}
 mkdir -p %{buildroot}%{_udevrulesdir}
+mkdir -p %{buildroot}%{_sysconfdir}/vaisalad/
 
 %{__install} %{_sourcedir}/vaisalad %{buildroot}%{_bindir}
 %{__install} %{_sourcedir}/goto-vaisalad.service %{buildroot}%{_unitdir}
+%{__install} %{_sourcedir}/10-goto-vaisala.rules %{buildroot}%{_udevrulesdir}
+%{__install} %{_sourcedir}/goto.json %{buildroot}%{_sysconfdir}/vaisalad/
 %{__install} %{_sourcedir}/vaisala-reset-rain.service %{buildroot}%{_unitdir}
 %{__install} %{_sourcedir}/vaisala-reset-rain.target %{buildroot}%{_unitdir}
 %{__install} %{_sourcedir}/vaisala-reset-rain.timer %{buildroot}%{_unitdir}
-%{__install} %{_sourcedir}/10-goto-vaisala.rules %{buildroot}%{_udevrulesdir}
 
 %post
 %systemd_post goto-vaisalad.service
@@ -42,6 +44,7 @@ mkdir -p %{buildroot}%{_udevrulesdir}
 %defattr(0644,root,root,-)
 %{_udevrulesdir}/10-goto-vaisala.rules
 %{_unitdir}/goto-vaisalad.service
+%{_sysconfdir}/vaisalad/goto.json
 %{_unitdir}/vaisala-reset-rain.service
 %{_unitdir}/vaisala-reset-rain.target
 %{_unitdir}/vaisala-reset-rain.timer
