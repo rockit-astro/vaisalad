@@ -14,7 +14,7 @@ all:
 	${RPMBUILD} -ba onemetre-vaisala-server.spec
 	${RPMBUILD} -ba goto-vaisala-server.spec
 	${RPMBUILD} -ba observatory-vaisala-client.spec
-	${RPMBUILD} -ba python36-warwick-observatory-vaisala.spec
+	${RPMBUILD} -ba python3-warwick-observatory-vaisala.spec
 
 	mv build/noarch/*.rpm .
 	rm -rf build
