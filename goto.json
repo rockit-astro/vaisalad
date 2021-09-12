@@ -1,7 +1,7 @@
 {
   "daemon": "goto_vaisala",
   "log_name": "goto_vaisalad",
-  "control_machines": ["OneMetreDome", "OneMetreTCS", "NitesMain", "GOTOServer", "RASAMain"],
+  "control_machines": ["OneMetreDome", "OneMetreTCS", "CLASPTCS", "GOTOServer", "SWASPTCS"],
   "serial_port": "/dev/vaisala",
   "serial_baud": 4800,
   "serial_timeout": 5
