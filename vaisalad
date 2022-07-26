@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.6
+#!/usr/bin/env python3
 #
 # This file is part of vaisalad.
 #
@@ -30,7 +30,7 @@ from warwick.observatory.common.helpers import pyro_client_matches
 from warwick.observatory.vaisala import Config
 
 # Set automatically when generating RPM package
-SOFTWARE_VERSION = "3.0.0 (git-1c7cb28)"
+SOFTWARE_VERSION = "UNKNOWN"
 
 
 DATA_REGEX = r'0R0,' \
