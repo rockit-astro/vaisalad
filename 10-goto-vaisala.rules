@@ -1,1 +1,1 @@
-SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6001", ATTRS{serial}=="FT0HYPAA", SYMLINK="vaisala", MODE="0666", TAG+="systemd" ENV{SYSTEMD_WANTS}="goto-vaisalad.service"
+SUBSYSTEM=="tty", ATTRS{idVendor}=="0403", ATTRS{idProduct}=="6015", ATTRS{serial}=="FT53SBU6", SYMLINK="vaisala", MODE="0666", TAG+="systemd" ENV{SYSTEMD_WANTS}="goto-vaisalad.service"
