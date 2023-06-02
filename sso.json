@@ -1,0 +1,9 @@
+{
+  "daemon": "goto_south_vaisala",
+  "log_name": "goto_vaisalad",
+  "control_machines": ["GOTOSSO"],
+  "serial_port": "/dev/vaisala",
+  "serial_baud": 4800,
+  "serial_timeout": 5,
+  "reset_rain_time": "02:00:00"
+}
