@@ -21,6 +21,7 @@ import argparse
 import datetime
 import math
 import re
+import socket
 import threading
 import time
 import Pyro4
@@ -110,7 +111,7 @@ def dew_point(temperature, humidity):
 
 
 class VaisalaDaemon:
-    """Daemon class that wraps the RS232 interface"""
+    """Daemon class that wraps the RS232/socket interface"""
     def __init__(self, config):
         self._config = config
         self._lock = threading.Lock()
@@ -126,12 +127,21 @@ class VaisalaDaemon:
     def run(self):
         """Main run loop"""
         port_error = False
+        sock = None
         while True:
             # Initial setup
             try:
-                port = serial.Serial(self._config.serial_port, self._config.serial_baud,
-                                     timeout=self._config.serial_timeout)
-                print('Connected to', self._config.serial_port)
+                if self._config.socket_ip:
+                    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                    sock.connect((self._config.socket_ip, self._config.socket_port))
+                    sock.settimeout(self._config.socket_timeout)
+                    port = sock.makefile(mode='rwb', buffering=0)
+                    print(f'Connected to {self._config.socket_ip}:{self._config.socket_port}')
+                else:
+                    port = serial.Serial(self._config.serial_port, self._config.serial_baud,
+                                         timeout=self._config.serial_timeout)
+                    print('Connected to', self._config.serial_port)
+
                 prefix = 'Restored' if port_error else 'Established'
                 log.info(self._config.log_name, prefix + ' connection to vaisala')
                 port_error = False
@@ -187,6 +197,10 @@ class VaisalaDaemon:
                         with self._lock:
                             self._latest = latest
             except Exception as exception:
+                if sock:
+                    sock.close()
+                    sock = None
+
                 port.close()
                 if not port_error:
                     print(exception)

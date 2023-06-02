@@ -1,0 +1,9 @@
+{
+  "daemon": "warwick_vaisala",
+  "log_name": "vaisalad@warwick",
+  "control_machines": ["WarwickDome", "WarwickTCS"],
+  "socket_ip": "172.19.0.165",
+  "socket_port": 4001,
+  "socket_timeout": 5,
+  "reset_rain_time": "12:00:00"
+}

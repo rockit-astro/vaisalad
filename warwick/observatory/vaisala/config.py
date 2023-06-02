@@ -22,8 +22,7 @@ from warwick.observatory.common import daemons, IP, validation
 CONFIG_SCHEMA = {
     'type': 'object',
     'additionalProperties': False,
-    'required': ['daemon', 'log_name', 'control_machines', 'reset_rain_time',
-                 'serial_port', 'serial_baud', 'serial_timeout'],
+    'required': ['daemon', 'log_name', 'control_machines', 'reset_rain_time'],
     'properties': {
         'daemon': {
             'type': 'string',
@@ -52,8 +51,23 @@ CONFIG_SCHEMA = {
         'serial_timeout': {
             'type': 'number',
             'min': 0
+        },
+        'socket_ip': {
+            'type': 'string',
+        },
+        'socket_port': {
+            'type': 'number',
+            'min': 0
+        },
+        'socket_timeout': {
+            'type': 'number',
+            'min': 0
         }
-    }
+    },
+    'anyOf': [
+        {'required': ['serial_port', 'serial_baud', 'serial_timeout']},
+        {'required': ['socket_ip', 'socket_port', 'socket_timeout']}
+    ]
 }
 
 
@@ -73,6 +87,13 @@ class Config:
         self.log_name = config_json['log_name']
         self.control_machines = [getattr(IP, machine) for machine in config_json['control_machines']]
         self.reset_rain_time = config_json['reset_rain_time']
-        self.serial_port = config_json['serial_port']
-        self.serial_baud = int(config_json['serial_baud'])
-        self.serial_timeout = int(config_json['serial_timeout'])
+        if 'socket_ip' in config_json:
+            self.socket_ip = config_json['socket_ip']
+            self.socket_port = int(config_json['socket_port'])
+            self.socket_timeout = int(config_json['socket_timeout'])
+            self.serial_port = self.serial_baud = self.serial_timeout = None
+        else:
+            self.serial_port = config_json['serial_port']
+            self.serial_baud = int(config_json['serial_baud'])
+            self.serial_timeout = int(config_json['serial_timeout'])
+            self.socket_ip = self.socket_port = self.socket_timeout = None

@@ -2,17 +2,17 @@
 
 Part of the observatory software for the Warwick La Palma telescopes.
 
-`vaisalad` wraps a Vaisala WXT520/WXT530 weather station attached via a USB-RS232 adaptor and
+`vaisalad` wraps a Vaisala WXT520/WXT530 weather station attached via an RS232-USB or RS232-ethernet adaptor and
 makes the latest measurement available for other services via Pyro.
 
-`vaisala` is a commandline utility that reports the latest data from the onemetre or GOTO weather stations.
+`vaisala` is a commandline utility that reports the latest weather data.
 
 See [Software Infrastructure](https://github.com/warwick-one-metre/docs/wiki/Software-Infrastructure) for an overview of the W1m software architecture and instructions for developing and deploying the code.
 
 ### Configuration
 
 Configuration is read from json files that are installed by default to `/etc/vaisalad`.
-A configuration file is specified when launching the dome server, and the `vaisala` frontend will search this location when launched.
+A configuration file is specified when launching the server, and the `vaisala` frontend will search this location when launched.
 
 ```python
 {
