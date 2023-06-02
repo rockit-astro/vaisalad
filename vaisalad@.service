@@ -7,7 +7,7 @@ After=network-online.target
 [Service]
 Restart=on-failure
 Type=simple
-ExecStart=/usr/bin/env python3 -u /usr/bin/vaisalad /etc/vaisalad/goto.json
-StandardOutput=syslog
-StandardError=syslog
+ExecStart=/usr/bin/env python3 -u /usr/bin/vaisalad /etc/vaisalad/%i.json
 
+[Install]
+WantedBy=multi-user.target

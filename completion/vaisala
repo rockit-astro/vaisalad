@@ -1,19 +1,17 @@
 _vaisala()
 {
     compopt +o default
-    local cur prev opts
+    local cur prev prevprev opts
     COMPREPLY=()
     cur="${COMP_WORDS[COMP_CWORD]}"
     prev="${COMP_WORDS[COMP_CWORD-1]}"
-    opts="onemetre goto"
+    prevprev="${COMP_WORDS[COMP_CWORD-2]}"
 
-    case "${prev}" in
-        onemetre|goto)
-            opts="status json zerorain"
-            ;;
-        *)
-            ;;
-    esac
+    if [[ "${prevprev}" == "vaisala" ]]; then
+        opts="status json zerorain"
+    else
+        opts=$(vaisala list-stations)
+    fi
 
     COMPREPLY=($(compgen -W "${opts}" -- ${cur}))
     return 0

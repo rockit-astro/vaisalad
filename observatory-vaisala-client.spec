@@ -1,12 +1,12 @@
 Name:      observatory-vaisala-client
-Version:   20220726
+Version:   20230602
 Release:   0
 Url:       https://github.com/warwick-one-metre/vaisalad
-Summary:   Weather station client for the Warwick La Palma telescopes.
+Summary:   Weather station client for the Warwick telescopes.
 License:   GPL-3.0
 Group:     Unspecified
 BuildArch: noarch
-Requires:  python3 python3-Pyro4 python3-warwick-observatory-common
+Requires:  python3 python3-Pyro4 python3-warwick-observatory-common python3-warwick-observatory-vaisala
 
 %description
 

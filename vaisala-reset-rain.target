@@ -1,3 +1,0 @@
-[Unit]
-Description=Resets the Vaisala rain counter daily at 12:00
-StopWhenUnneeded=yes

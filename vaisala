@@ -18,45 +18,39 @@
 """Commandline client for querying the latest measurement from vaisalad"""
 
 import datetime
+import glob
 import json
 import os
 import sys
-import time
 import Pyro4
-from warwick.observatory.common import daemons, TFmt
+from warwick.observatory.common import TFmt
+from warwick.observatory.vaisala import Config
 
 SCRIPT_NAME = os.path.basename(sys.argv[0])
 sys.excepthook = Pyro4.util.excepthook
 
-DAEMONS = {
-    'onemetre': daemons.onemetre_vaisala,
-    'goto': daemons.goto_vaisala
-}
 
-def run_command(daemon, command):
+def run_command(config_paths, station_id, command):
     """Prints the message associated with a status code and returns the code"""
+    config = Config(config_paths[station_id])
     try:
-        ret = command(daemon)
+        ret = command(config)
     except Pyro4.errors.CommunicationError:
         print('error: unable to communicate with the Vaisala daemon')
         ret = 1
 
     return ret
 
-def print_status(daemon):
+
+def print_status(config):
     """Prints the latest weather data in human-readable form"""
-    latest = None
-    try:
-        with daemon.connect() as vaisala:
-            latest = vaisala.last_measurement()
-            sensors = vaisala.measurement_sensors()
-    except Pyro4.errors.CommunicationError:
-        print('error: unable to communicate with Vaisala daemon')
-        return 1
+    with config.daemon.connect() as vaisala:
+        latest = vaisala.last_measurement()
+        sensors = vaisala.measurement_sensors()
 
     if latest is not None and sensors is not None:
         date = datetime.datetime.strptime(latest['date'], '%Y-%m-%dT%H:%M:%SZ')
-        print('Data received \033[1m{}\033[0m:'.format(date))
+        print(f'Data received {TFmt.Bold}{date}{TFmt.Clear}:')
 
         # Find the longest label to set the parameter indent
         max_label_length = 0
@@ -84,29 +78,28 @@ def format_value(data, valid, suffix=''):
     ret += TFmt.Clear
     return ret
 
-def print_json(daemon):
+
+def print_json(config):
     """Prints the latest environment data in machine-readable form"""
-    with daemon.connect() as vaisala:
+    with config.daemon.connect() as vaisala:
         latest = vaisala.last_measurement()
     print(json.dumps(latest or {}))
     return 0
 
-def reset_rain_counter(daemon):
-    """Resets the accumulated rain counter"""
-    with daemon.connect() as vaisala:
-        success = vaisala.reset_rain_counter()
-    if not success:
-        print('error: command not accepted from this IP')
-        return 1
 
-    # The reset occasionally fails first time, so try running it twice with a short delay
-    time.sleep(1)
-    vaisala.reset_rain_counter()
+def reset_rain_counter(config):
+    """Resets the accumulated rain counter"""
+    with config.daemon.connect() as vaisala:
+        success = vaisala.reset_rain_counter()
+        if not success:
+            print('error: command not accepted from this IP')
+            return 1
     return 0
 
-def print_usage():
+
+def print_usage(config_paths):
     """Prints the utility help"""
-    print('Usage: {} [onemetre|goto] <command>'.format(SCRIPT_NAME))
+    print(f'Usage: {SCRIPT_NAME} [{"|".join(sorted(config_paths.keys()))}] <command>')
     print()
     print('   status      print a human-readable summary of the Vaisala status')
     print('   json        print a machine-readable summary of the Vaisala status')
@@ -115,9 +108,26 @@ def print_usage():
 
     return 1
 
+
 if __name__ == '__main__':
+    if 'VAISALAD_CONFIG_ROOT' in os.environ:
+        config_root = os.environ['VAISALAD_CONFIG_ROOT']
+    else:
+        config_root = '/etc/vaisalad'
+
+    configs = {os.path.basename(p)[:-5]: p for p in glob.glob(os.path.join(config_root, '*.json'))}
+    if not configs:
+        print('error: no configs were found in ' + config_root)
+        print('       run as VAISALAD_CONFIG_ROOT=/path/to/config/root ' + ' '.join(sys.argv))
+        print('       to specify the configuration root directory')
+        sys.exit(1)
+
+    if len(sys.argv) == 2 and sys.argv[1] == 'list-stations':
+        print(' '.join(sorted(configs.keys())))
+        sys.exit(0)
+
     if len(sys.argv) < 3:
-        sys.exit(print_usage())
+        sys.exit(print_usage(configs))
 
     commands = {
         'status': print_status,
@@ -125,7 +135,7 @@ if __name__ == '__main__':
         'zerorain': reset_rain_counter
     }
 
-    if sys.argv[1] not in DAEMONS or sys.argv[2] not in commands:
-        sys.exit(print_usage())
+    if sys.argv[1] not in configs or sys.argv[2] not in commands:
+        sys.exit(print_usage(configs))
 
-    sys.exit(run_command(DAEMONS[sys.argv[1]], commands[sys.argv[2]]))
+    sys.exit(run_command(configs, sys.argv[1], commands[sys.argv[2]]))

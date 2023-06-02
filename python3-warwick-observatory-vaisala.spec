@@ -1,5 +1,5 @@
 Name:           python3-warwick-observatory-vaisala
-Version:        20220726
+Version:        20230602
 Release:        0
 License:        GPL3
 Summary:        Common backend code for the Vaisala daemons.
@@ -7,9 +7,6 @@ Url:            https://github.com/warwick-one-metre/vaisalad
 BuildArch:      noarch
 
 %description
-Part of the observatory software for the Warwick La Palma telescopes.
-
-python36-warwick-observatory-vaisalad holds the common vaisala code.
 
 %prep
 

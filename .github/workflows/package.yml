@@ -32,9 +32,9 @@ jobs:
       - name: Set Package Versions
         run: |
           # Set the spec Revision field to <latest in repo> + 1
-          rocky-packages/set-spec-release.sh onemetre-vaisala-server.spec
-          rocky-packages/set-spec-release.sh goto-vaisala-server.spec
+          rocky-packages/set-spec-release.sh observatory-vaisala-server.spec
           rocky-packages/set-spec-release.sh observatory-vaisala-client.spec
+          rocky-packages/set-spec-release.sh observatory-vaisala-data.spec
           rocky-packages/set-spec-release.sh python3-warwick-observatory-vaisala.spec
 
       - name: Package RPMs

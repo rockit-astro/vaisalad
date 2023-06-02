@@ -1,4 +1,4 @@
-## W1m Vaisala weather station daemon ![Build Status](https://github.com/warwick-one-metre/vaisalad/workflows/RPM%20Packaging/badge.svg)
+## W1m Vaisala weather station daemon
 
 Part of the observatory software for the Warwick La Palma telescopes.
 
@@ -7,53 +7,82 @@ makes the latest measurement available for other services via Pyro.
 
 `vaisala` is a commandline utility that reports the latest data from the onemetre or GOTO weather stations.
 
-An additional `vaisala-reset-rain` service runs on `gotoserver` to reset the accumulated rain count each day at 12:00.
-
 See [Software Infrastructure](https://github.com/warwick-one-metre/docs/wiki/Software-Infrastructure) for an overview of the W1m software architecture and instructions for developing and deploying the code.
 
-### Software Setup (W1m)
+### Configuration
 
-The `vaisalad` service will be automatically started when the USB-Serial converter with serial number `FTYQH2HQ` is plugged in to the machine.
-If this ever changes then the udev rule in `10-onemetre-vaisala.rules` should be updated to match.
+Configuration is read from json files that are installed by default to `/etc/vaisalad`.
+A configuration file is specified when launching the dome server, and the `vaisala` frontend will search this location when launched.
 
-If the `onemetre-vaisala-server` package is (re-)installed after the device is attached then it may be manually started using
-```
-sudo systemctl start vaisalad
+```python
+{
+  "daemon": "onemetre_vaisala", # Run the server as this daemon. Daemon types are registered in `warwick.observatory.common.daemons`.
+  "log_name": "vaisalad", # The name to use when writing messages to the observatory log.
+  "control_machines": ["OneMetreDome", "OneMetreTCS", "CLASPTCS", "GOTOServer", "SWASPTCS"], # Machine names that are allowed to control (rather than just query) state. Machine names are registered in `warwick.observatory.common.IP`.
+  "serial_port": "/dev/vaisala", # Serial FIFO for communicating with the vaisala
+  "serial_baud": 4800, # Serial baud rate
+  "serial_timeout": 5, # Serial comms timeout
+  "rain_reset_time": "12:00:00" # Time of day to reset the accumulated rain counter
+}
 ```
 
-Finally, open a port in the firewall so that other machines on the network can access the daemon:
+The FIFO device names are defined in the .rules files installed through the `-vaisala-data` rpm packages.
+If the physical serial port or USB adaptors change these should be updated to match.
+
+### Initial Installation
+
+The automated packaging scripts will push 4 RPM packages to the observatory package repository:
+
+| Package                             | Description                                                                    |
+|-------------------------------------|--------------------------------------------------------------------------------|
+| observatory-vaisala-server          | Contains the `vaisalad` server and systemd service file.                       |
+| observatory-vaisala-client          | Contains the `vaisala` commandline utility for controlling the vaisala server. |
+| python3-warwick-observatory-vaisala | Contains the python module with shared code.                                   |
+| observatory-vaisala-data            | Contains the json configuration and udev rules for the La Palma stations.      |
+
+After installing packages, the systemd service should be enabled:
+
 ```
-sudo firewall-cmd --zone=public --add-port=9001/tcp --permanent
+sudo systemctl enable vaisalad@<config>
+sudo systemctl start vaisalad@<config>
+```
+
+where `config` is the name of the json file for the appropriate station.
+
+Now open a port in the firewall:
+```
+sudo firewall-cmd --zone=public --add-port=<port>/tcp --permanent
 sudo firewall-cmd --reload
 ```
+where `port` is the port defined in `warwick.observatory.common.daemons` for the daemon specified in the vaisala config.
 
-Note that the `vaisala-reset-rain` service runs on gotoserver and is covered under the GOTO instructions.
+### Upgrading Installation
 
-### Software Setup (GOTO)
-
-The `vaisalad` service will be automatically started when the USB-Serial converter with serial number `FTB3L8SI` is plugged in to the machine.
-If this ever changes then the udev rule in `10-goto-vaisala.rules` should be updated to match.
-
-If the `goto-vaisala-server` package is (re-)installed after the device is attached then it may be manually started using
+New RPM packages are automatically created and pushed to the package repository for each push to the `master` branch.
+These can be upgraded locally using the standard system update procedure:
 ```
-sudo systemctl start goto-vaisalad
+sudo yum clean expire-cache
+sudo yum update
 ```
 
-The `vaisala-reset-rain` service must be enabled after installation using
+The daemon should then be restarted to use the newly installed code:
 ```
-sudo systemctl enable vaisala-reset-rain.timer
-sudo systemctl start vaisala-reset-rain.timer
+sudo systemctl stop vaisalad@<config>
+sudo systemctl start vaisalad@<config>
 ```
 
-Finally, open a port in the firewall so that other machines on the network can access the daemon:
+### Testing Locally
+
+The vaisala server and client can be run directly from a git clone:
 ```
-sudo firewall-cmd --zone=public --add-port=9022/tcp --permanent
-sudo firewall-cmd --reload
+./vaisalad onemetre.json
+VAISALAD_CONFIG_PATH=./onemetre.json ./vaisala status
 ```
 
 ### Hardware Setup
 
-The Vaisala unit should be configured with 4800 8N1 with no flow control. Set this by sending:
+When setting up a new vaisala station the baud rate and measurement outputs must be configured to the expected format.
+Set this by sending:
 ```
 0XU,A=0,M=A,C=2,I=5,B=4800,D=8,P=N,S=1,L=25\r\n
 ```
@@ -61,7 +90,5 @@ through minicom or python.
 
 Change the wind and rain measurements by sending:
 ```
-0RU,R=1111110010100000,U=K\r\n
-0WU,R=1111110001011100,G=3,A=30\r\n
+0WU,R=1111110001011100,G=3,A=30,U=K\r\n
 ```
-

@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with vaisalad.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Weather station daemon for the Warwick one-metre telescope"""
+"""Weather station daemon"""
 
 import argparse
 import datetime
@@ -32,7 +32,6 @@ from warwick.observatory.vaisala import Config
 # Set automatically when generating RPM package
 SOFTWARE_VERSION = "UNKNOWN"
 
-
 DATA_REGEX = r'0R0,' \
     r'Dm=(?P<wind_direction>\d+)(?P<wind_direction_status>[D\#]),' \
     r'Sn=(?P<wind_lull>\d+\.\d)(?P<wind_lull_status>[K\#]),' \
@@ -45,7 +44,6 @@ DATA_REGEX = r'0R0,' \
     r'Ri=(?P<rain_intensity>\d+\.\d)(?P<rain_intensity_status>[M\#]),' \
     r'Th=(?P<heater_temperature>-?\d+\.\d)(?P<heater_temperature_status>[C\#]),' \
     r'Vh=(?P<heater_voltage>\d+\.\d)(?P<heater_voltage_status>[NVWF])\r\n'
-
 
 DATA_FIELDS = {
     'wind_direction': 'D',
@@ -102,6 +100,7 @@ DATA_SENSORS = {
     }
 }
 
+
 def dew_point(temperature, humidity):
     """Calculates the dew point using the equation defined by the Vaisala manual"""
     a = math.log(100 / humidity)
@@ -109,40 +108,40 @@ def dew_point(temperature, humidity):
     c = temperature + 273.16
     return c * b / (c * a / 2 + b) - 273.16
 
+
 class VaisalaDaemon:
     """Daemon class that wraps the RS232 interface"""
     def __init__(self, config):
         self._config = config
         self._lock = threading.Lock()
-        self._running = True
         self._regex = re.compile(DATA_REGEX)
         self._latest = None
-        self._port = None
-        self._port_error = False
-        self._send_rain_reset = False
 
-        runloop = threading.Thread(target=self.run)
-        runloop.daemon = True
-        runloop.start()
+        self._send_reset_rain = False
+        self._last_reset_rain_check = datetime.datetime.min
+        self._reset_rain_time = datetime.time.fromisoformat(self._config.reset_rain_time)
+
+        threading.Thread(target=self.run, daemon=True).start()
 
     def run(self):
         """Main run loop"""
-        while self._running:
+        port_error = False
+        while True:
             # Initial setup
             try:
-                self._port = serial.Serial(self._config.serial_port, self._config.serial_baud,
-                                           timeout=self._config.serial_timeout)
+                port = serial.Serial(self._config.serial_port, self._config.serial_baud,
+                                     timeout=self._config.serial_timeout)
                 print('Connected to', self._config.serial_port)
-                prefix = 'Restored' if self._port_error else 'Established'
-                log.info(self._config.log_name, prefix + ' serial connection to vaisala')
-                self._port_error = False
+                prefix = 'Restored' if port_error else 'Established'
+                log.info(self._config.log_name, prefix + ' connection to vaisala')
+                port_error = False
             except Exception as exception:
-                print(exception)
-                print('Will retry in 10 seconds...')
-                if not self._port_error:
+                if not port_error:
+                    print(exception)
+                    print('Will retry in 10 seconds...')
                     log.error(self._config.log_name, 'Failed to connect to vaisala')
 
-                self._port_error = True
+                port_error = True
 
                 time.sleep(10.)
                 continue
@@ -150,20 +149,22 @@ class VaisalaDaemon:
             try:
                 self._latest = None
 
-                # Flush any stale state
-                self._port.flushInput()
-                self._port.flushOutput()
-
-                # First line may have been only partially recieved
-                self._port.readline()
+                # First line may have been only partially received
+                port.readline()
 
                 # Main run loop
-                while self._running:
-                    if self._send_rain_reset:
-                        self._port.write('\r\n0XZRU\r\n'.encode('ascii'))
-                        self._send_rain_reset = False
+                while True:
+                    now = datetime.datetime.utcnow()
+                    reset_time = datetime.datetime.combine(now.date(), self._reset_rain_time)
+                    if self._last_reset_rain_check < reset_time <= now:
+                        self._send_reset_rain = True
 
-                    data = self._port.readline().decode('ascii')
+                    self._last_reset_rain_check = now
+                    if self._send_reset_rain:
+                        port.write('\r\n0XZRU\r\n'.encode('ascii'))
+                        self._send_reset_rain = False
+
+                    data = port.readline().decode('ascii')
                     match = self._regex.match(data)
                     if match:
                         latest = {
@@ -171,29 +172,27 @@ class VaisalaDaemon:
                             'software_version': SOFTWARE_VERSION
                         }
 
-                        for field in DATA_FIELDS:
+                        for field, status in DATA_FIELDS.items():
                             latest.update({
                                 field: float(match.group(field)),
-                                field+'_valid': match.group(field+'_status') == DATA_FIELDS[field]
+                                field + '_valid': match.group(field + '_status') == status
                             })
 
                         dewpt = dew_point(latest['temperature'], latest['relative_humidity'])
                         latest.update({
                             'dew_point_delta': round(latest['temperature'] - dewpt, 2),
-                            'dew_point_delta_valid': latest['temperature_valid'] and \
-                                latest['relative_humidity_valid']
+                            'dew_point_delta_valid': latest['temperature_valid'] and latest['relative_humidity_valid']
                         })
 
                         with self._lock:
                             self._latest = latest
-
             except Exception as exception:
-                self._port.close()
-                print(exception)
-                print('Will retry in 10 seconds...')
-                if not self._port_error:
-                    log.error(self._config.log_name, 'Lost serial connection to vaisala')
-                self._port_error = True
+                port.close()
+                if not port_error:
+                    print(exception)
+                    print('Will retry in 10 seconds...')
+                    log.error(self._config.log_name, 'Lost connection to vaisala')
+                port_error = True
                 time.sleep(10.)
 
     @Pyro4.expose
@@ -215,8 +214,9 @@ class VaisalaDaemon:
         if not pyro_client_matches(self._config.control_machines):
             return False
 
-        self._send_rain_reset = True
+        self._send_reset_rain = True
         return True
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Vaisala Server')

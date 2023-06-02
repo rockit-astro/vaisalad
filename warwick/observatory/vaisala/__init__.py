@@ -14,6 +14,6 @@
 # You should have received a copy of the GNU General Public License
 # along with vaisalad.  If not, see <http://www.gnu.org/licenses/>.
 
-"""roomalertd common code"""
+"""vaisalad common code"""
 
 from .config import Config
