@@ -40,6 +40,8 @@ The automated packaging scripts will push 4 RPM packages to the observatory pack
 | python3-warwick-observatory-vaisala | Contains the python module with shared code.                                   |
 | observatory-vaisala-data            | Contains the json configuration and udev rules for the La Palma stations.      |
 
+Alternatively, perform a local installation using `sudo make install`.
+
 After installing packages, the systemd service should be enabled:
 
 ```

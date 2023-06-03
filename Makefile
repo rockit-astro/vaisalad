@@ -19,3 +19,14 @@ all:
 	mv build/noarch/*.rpm .
 	rm -rf build
 	mv vaisalad.bak vaisalad
+
+install:
+	@python3 setup.py install
+	@cp vaisalad vaisala /bin/
+	@cp vaisalad@.service /usr/lib/systemd/system/
+	@cp completion/vaisala /etc/bash_completion.d/
+	@install -d /etc/vaisalad
+	@echo ""
+	@echo "Installed server, client, and service files."
+	@echo "Now copy the relevant json config files to /etc/vaisalad/"
+	@echo "and udev rules to /usr/lib/udev/rules.d/"
