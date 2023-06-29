@@ -16,11 +16,13 @@ mkdir -p %{buildroot}%{_sysconfdir}/vaisalad/
 %{__install} %{_sourcedir}/10-lapalma-vaisala.rules %{buildroot}%{_udevrulesdir}
 %{__install} %{_sourcedir}/onemetre.json %{buildroot}%{_sysconfdir}/vaisalad/
 %{__install} %{_sourcedir}/goto.json %{buildroot}%{_sysconfdir}/vaisalad/
+%{__install} %{_sourcedir}/halfmetre.json %{buildroot}%{_sysconfdir}/vaisalad/
 
 %files
 %defattr(0644,root,root,-)
 %{_udevrulesdir}/10-lapalma-vaisala.rules
 %{_sysconfdir}/vaisalad/onemetre.json
 %{_sysconfdir}/vaisalad/goto.json
+%{_sysconfdir}/vaisalad/halfmetre.json
 
 %changelog

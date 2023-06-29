@@ -1,0 +1,9 @@
+{
+  "daemon": "halfmetre_vaisala",
+  "log_name": "vaisalad@halfmetre",
+  "control_machines": ["OneMetreDome", "OneMetreTCS", "CLASPTCS", "GOTOServer", "SWASPTCS", "HalfMetreTCS"],
+  "serial_port": "/dev/vaisala",
+  "serial_baud": 4800,
+  "serial_timeout": 5,
+  "reset_rain_time": "12:00:00"
+}
