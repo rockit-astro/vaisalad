@@ -1,5 +1,5 @@
 Name:      observatory-vaisala-server
-Version:   20230602
+Version:   20230630
 Release:   0
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station daemon for the Warwick telescopes.

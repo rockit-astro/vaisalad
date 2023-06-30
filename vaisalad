@@ -33,7 +33,7 @@ from warwick.observatory.vaisala import Config
 # Set automatically when generating RPM package
 SOFTWARE_VERSION = "UNKNOWN"
 
-DATA_REGEX = r'0R0,' \
+VAISALA_REGEX = r'0R0,' \
     r'Dm=(?P<wind_direction>\d+)(?P<wind_direction_status>[D\#]),' \
     r'Sn=(?P<wind_lull>\d+\.\d)(?P<wind_lull_status>[K\#]),' \
     r'Sm=(?P<wind_speed>\d+\.\d)(?P<wind_speed_status>[K\#]),' \
@@ -46,7 +46,7 @@ DATA_REGEX = r'0R0,' \
     r'Th=(?P<heater_temperature>-?\d+\.\d)(?P<heater_temperature_status>[C\#]),' \
     r'Vh=(?P<heater_voltage>\d+\.\d)(?P<heater_voltage_status>[NVWF])\r\n'
 
-DATA_FIELDS = {
+VAISALA_FIELDS = {
     'wind_direction': 'D',
     'wind_lull': 'K',
     'wind_speed': 'K',
@@ -58,7 +58,10 @@ DATA_FIELDS = {
     'rain_intensity': 'M'
 }
 
-DATA_SENSORS = {
+RG11_REGEX = r'1R0,RS=(?P<sensor_1>[01])(?P<sensor_2>[01])(?P<sensor_3>[01])\r\n'
+RG11_FIELDS = ['sensor_1', 'sensor_2', 'sensor_3']
+
+VAISALA_SENSORS = {
     'wind_gust': {
         'label': 'Wind Gust',
         'units': 'km/h'
@@ -101,6 +104,17 @@ DATA_SENSORS = {
     }
 }
 
+RG11_SENSORS = {
+    'rg11_unsafe': {
+        'label': 'Unsafe Rain Sen.',
+        'units': ''
+    },
+    'rg11_total': {
+        'label': 'Total Rain Sen.',
+        'units': ''
+    }
+}
+
 
 def dew_point(temperature, humidity):
     """Calculates the dew point using the equation defined by the Vaisala manual"""
@@ -115,7 +129,13 @@ class VaisalaDaemon:
     def __init__(self, config):
         self._config = config
         self._lock = threading.Lock()
-        self._regex = re.compile(DATA_REGEX)
+        self._vaisala_regex = re.compile(VAISALA_REGEX)
+        self._rg11_regex = re.compile(RG11_REGEX)
+        self._sensors = {}
+        self._sensors.update(VAISALA_SENSORS)
+        if self._config.has_rg11_injecter:
+            self._sensors.update(RG11_SENSORS)
+
         self._latest = None
 
         self._send_reset_rain = False
@@ -175,14 +195,14 @@ class VaisalaDaemon:
                         self._send_reset_rain = False
 
                     data = port.readline().decode('ascii')
-                    match = self._regex.match(data)
+                    match = self._vaisala_regex.match(data)
                     if match:
                         latest = {
                             'date': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
                             'software_version': SOFTWARE_VERSION
                         }
 
-                        for field, status in DATA_FIELDS.items():
+                        for field, status in VAISALA_FIELDS.items():
                             latest.update({
                                 field: float(match.group(field)),
                                 field + '_valid': match.group(field + '_status') == status
@@ -193,6 +213,24 @@ class VaisalaDaemon:
                             'dew_point_delta': round(latest['temperature'] - dewpt, 2),
                             'dew_point_delta_valid': latest['temperature_valid'] and latest['relative_humidity_valid']
                         })
+
+                        if self._config.has_rg11_injecter:
+                            # The next line contains rain sensor information
+                            data = port.readline().decode('ascii')
+                            match = self._rg11_regex.match(data)
+                            if match:
+                                unsafe = 0
+                                total = 0
+                                for field in RG11_FIELDS:
+                                    unsafe += int(match.group(field))
+                                    total += 1
+
+                                latest.update({
+                                    'rg11_unsafe': unsafe,
+                                    'rg11_unsafe_valid': True,
+                                    'rg11_total': total,
+                                    'rg11_total_valid': True
+                                })
 
                         with self._lock:
                             self._latest = latest
@@ -220,7 +258,7 @@ class VaisalaDaemon:
         """
         Returns a dictionary of sensor definitions
         """
-        return DATA_SENSORS
+        return self._sensors
 
     @Pyro4.expose
     def reset_rain_counter(self):

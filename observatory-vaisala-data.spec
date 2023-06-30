@@ -1,5 +1,5 @@
 Name:      observatory-vaisala-data
-Version:   20230629
+Version:   20230630
 Release:   0
 Url:       https://github.com/warwick-one-metre/vaisalad
 Summary:   Weather station data for La Palma

@@ -22,7 +22,7 @@ from warwick.observatory.common import daemons, IP, validation
 CONFIG_SCHEMA = {
     'type': 'object',
     'additionalProperties': False,
-    'required': ['daemon', 'log_name', 'control_machines', 'reset_rain_time'],
+    'required': ['daemon', 'log_name', 'control_machines', 'reset_rain_time', 'has_rg11_injecter'],
     'properties': {
         'daemon': {
             'type': 'string',
@@ -62,6 +62,9 @@ CONFIG_SCHEMA = {
         'socket_timeout': {
             'type': 'number',
             'min': 0
+        },
+        'has_rg11_injecter': {
+            'type': 'boolean'
         }
     },
     'anyOf': [
@@ -87,6 +90,7 @@ class Config:
         self.log_name = config_json['log_name']
         self.control_machines = [getattr(IP, machine) for machine in config_json['control_machines']]
         self.reset_rain_time = config_json['reset_rain_time']
+        self.has_rg11_injecter = config_json['has_rg11_injecter']
         if 'socket_ip' in config_json:
             self.socket_ip = config_json['socket_ip']
             self.socket_port = int(config_json['socket_port'])
