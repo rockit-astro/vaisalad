@@ -17,32 +17,24 @@ jobs:
           dnf -y install 'dnf-command(config-manager)'
           dnf -y config-manager --set-enabled crb
           dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
-          yum -y install git rpm-build rpm-sign rsync make python3-rpm-macros python3-devel systemd-rpm-macros
+          yum -y install git rpm-build rpm-sign rsync make python3-rpm-macros systemd-rpm-macros pyproject-rpm-macros python3-devel python3-toml python3-wheel
 
       - name: Clone Repository
-        uses: actions/checkout@v2
-
-      - name: Clone Package Repository
-        uses: actions/checkout@v2
-        with:
-          repository: warwick-one-metre/rocky-packages
-          token: ${{ secrets.DEPLOY_TOKEN }}
-          path: rocky-packages
-
-      - name: Set Package Versions
-        run: |
-          # Set the spec Revision field to <latest in repo> + 1
-          rocky-packages/set-spec-release.sh observatory-vaisala-server.spec
-          rocky-packages/set-spec-release.sh observatory-vaisala-client.spec
-          rocky-packages/set-spec-release.sh observatory-vaisala-data.spec
-          rocky-packages/set-spec-release.sh python3-warwick-observatory-vaisala.spec
+        uses: actions/checkout@v3
 
       - name: Package RPMs
         run:
           make
 
+      - name: Clone Package Repository
+        uses: actions/checkout@v3
+        with:
+          repository: rockit-astro/packages
+          token: ${{ secrets.DEPLOY_TOKEN }}
+          path: packages
+
       - name: Push Packages
         env:
           RPM_SIGNING_KEY: ${{ secrets.RPM_SIGNING_KEY }}
-        run: |
-          rocky-packages/sign-and-push-packages.sh *.rpm
+        run:
+          packages/sign-and-push-packages.sh *.rpm

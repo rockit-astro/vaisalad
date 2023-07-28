@@ -1,19 +1,19 @@
 #!/usr/bin/env python3
 #
-# This file is part of vaisalad.
+# This file is part of the Robotic Observatory Control Kit (rockit)
 #
-# vaisalad is free software: you can redistribute it and/or modify
+# rockit is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
 # (at your option) any later version.
 #
-# vaisalad is distributed in the hope that it will be useful,
+# rockit is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
 # MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 # GNU General Public License for more details.
 #
 # You should have received a copy of the GNU General Public License
-# along with vaisalad.  If not, see <http://www.gnu.org/licenses/>.
+# along with rockit.  If not, see <http://www.gnu.org/licenses/>.
 
 """Weather station daemon"""
 
@@ -26,12 +26,9 @@ import threading
 import time
 import Pyro4
 import serial
-from warwick.observatory.common import log
-from warwick.observatory.common.helpers import pyro_client_matches
-from warwick.observatory.vaisala import Config
-
-# Set automatically when generating RPM package
-SOFTWARE_VERSION = "UNKNOWN"
+from rockit.common import log
+from rockit.common.helpers import pyro_client_matches
+from rockit.vaisala import Config
 
 VAISALA_REGEX = r'0R0,' \
     r'Dm=(?P<wind_direction>\d+)(?P<wind_direction_status>[D\#]),' \
@@ -199,7 +196,6 @@ class VaisalaDaemon:
                     if match:
                         latest = {
                             'date': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
-                            'software_version': SOFTWARE_VERSION
                         }
 
                         for field, status in VAISALA_FIELDS.items():
