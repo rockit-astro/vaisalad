@@ -24,6 +24,7 @@ mkdir -p %{buildroot}%{_udevrulesdir}
 %{__install} %{_sourcedir}/config/onemetre.json %{buildroot}%{_sysconfdir}/vaisalad/
 %{__install} %{_sourcedir}/config/goto.json %{buildroot}%{_sysconfdir}/vaisalad/
 %{__install} %{_sourcedir}/config/halfmetre.json %{buildroot}%{_sysconfdir}/vaisalad/
+%{__install} %{_sourcedir}/config/warwick.json %{buildroot}%{_sysconfdir}/vaisalad/
 %{__install} %{_sourcedir}/config/10-lapalma-vaisala.rules %{buildroot}%{_udevrulesdir}
 
 %package server
@@ -60,5 +61,14 @@ Group:   Unspecified
 %{_sysconfdir}/vaisalad/onemetre.json
 %{_sysconfdir}/vaisalad/goto.json
 %{_sysconfdir}/vaisalad/halfmetre.json
+
+%package data-warwick
+Summary: Weather station data for Windmill Hill observatory
+Group:   Unspecified
+%description data-warwick
+
+%files data-warwick
+%defattr(0644,root,root,-)
+%{_sysconfdir}/vaisalad/warwick.json
 
 %changelog

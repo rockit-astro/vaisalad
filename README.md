@@ -27,13 +27,14 @@ If the physical serial port or USB adaptors change these should be updated to ma
 
 ### Initial Installation
 
-The automated packaging scripts will push 4 RPM packages to the observatory package repository:
+The automated packaging scripts will push 5 RPM packages to the observatory package repository:
 
 | Package                     | Description                                                                    |
 |-----------------------------|--------------------------------------------------------------------------------|
 | rockit-vaisala-server       | Contains the `vaisalad` server and systemd service file.                       |
 | rockit-vaisala-client       | Contains the `vaisala` commandline utility for controlling the vaisala server. |
 | rockit-vaisala-data-lapalma | Contains the json configuration and udev rules for the La Palma stations.      |
+| rockit-vaisala-data-warwick | Contains the json configuration and udev rules for the Windmill Hill station.  |
 | python3-rockit-vaisala      | Contains the python module with shared code.                                   |
 
 Alternatively, perform a local installation using `sudo make install`.
