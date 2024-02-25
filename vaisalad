@@ -55,8 +55,7 @@ VAISALA_FIELDS = {
     'rain_intensity': 'M'
 }
 
-RG11_REGEX = r'1R0,RS=(?P<sensor_1>[01])(?P<sensor_2>[01])(?P<sensor_3>[01])\r\n'
-RG11_FIELDS = ['sensor_1', 'sensor_2', 'sensor_3']
+RG11_REGEX = r'1R0,RS=(?P<sensors>[01]+)\r\n'
 
 VAISALA_SENSORS = {
     'wind_gust': {
@@ -217,8 +216,8 @@ class VaisalaDaemon:
                             if match:
                                 unsafe = 0
                                 total = 0
-                                for field in RG11_FIELDS:
-                                    unsafe += int(match.group(field))
+                                for sensor in match.group('sensors'):
+                                    unsafe += int(sensor)
                                     total += 1
 
                                 latest.update({
