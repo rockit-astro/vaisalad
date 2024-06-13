@@ -17,7 +17,7 @@ jobs:
           dnf -y install 'dnf-command(config-manager)'
           dnf -y config-manager --set-enabled crb
           dnf -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-9.noarch.rpm https://dl.fedoraproject.org/pub/epel/epel-next-release-latest-9.noarch.rpm
-          yum -y install git rpm-build rpm-sign rsync make python3-rpm-macros systemd-rpm-macros pyproject-rpm-macros python3-devel python3-toml python3-wheel
+          yum -y install git rpm-build rpm-sign rsync make python3-rpm-macros systemd-rpm-macros pyproject-rpm-macros python3-devel python3-tomli python3-wheel
 
       - name: Clone Repository
         uses: actions/checkout@v3
