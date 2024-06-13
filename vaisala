@@ -23,7 +23,7 @@ import json
 import os
 import sys
 import Pyro4
-from rockit.common import TFmt
+from rockit.common import print
 from rockit.vaisala import Config
 
 SCRIPT_NAME = os.path.basename(sys.argv[0])
@@ -50,7 +50,7 @@ def print_status(config):
 
     if latest is not None and sensors is not None:
         date = datetime.datetime.strptime(latest['date'], '%Y-%m-%dT%H:%M:%SZ')
-        print(f'Data received {TFmt.Bold}{date}{TFmt.Clear}:')
+        print(f'Data received [b]{date}[/b]:')
 
         # Find the longest label to set the parameter indent
         max_label_length = 0
@@ -72,10 +72,9 @@ def print_status(config):
 
 def format_value(data, valid, suffix=''):
     """Builds a formatted string with a value"""
-    ret = TFmt.Bold + str(data) + suffix
+    ret = f'[b]{data}{suffix}[/b]'
     if not valid:
-        ret += TFmt.Red + ' (INVALID)'
-    ret += TFmt.Clear
+        ret += '[red][b] (INVALID)[b][/red]'
     return ret
 
 
@@ -99,7 +98,7 @@ def reset_rain_counter(config):
 
 def print_usage(config_paths):
     """Prints the utility help"""
-    print(f'Usage: {SCRIPT_NAME} [{"|".join(sorted(config_paths.keys()))}] <command>')
+    print(f'Usage: {SCRIPT_NAME} <{"|".join(sorted(config_paths.keys()))}> <command>')
     print()
     print('   status      print a human-readable summary of the Vaisala status')
     print('   json        print a machine-readable summary of the Vaisala status')
