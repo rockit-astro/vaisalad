@@ -1,7 +1,7 @@
 {
   "daemon": "halfmetre_vaisala",
   "log_name": "vaisalad@halfmetre",
-  "control_machines": ["OneMetreDome", "OneMetreTCS", "CLASPTCS", "GOTOServer", "SWASPTCS", "HalfMetreTCS"],
+  "control_machines": ["OneMetreDome", "OneMetreTCS", "OneMetreDAS", "CLASPTCS", "GOTOServer", "STINGTCS", "HalfMetreTCS"],
   "serial_port": "/dev/vaisala",
   "serial_baud": 4800,
   "serial_timeout": 5,
