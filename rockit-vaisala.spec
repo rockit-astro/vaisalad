@@ -1,6 +1,6 @@
 Name:      rockit-vaisala
 Version:   %{_version}
-Release:   1
+Release:   1%{dist}
 Summary:   Weather station
 Url:       https://github.com/rockit-astro/vaisalad
 License:   GPL-3.0

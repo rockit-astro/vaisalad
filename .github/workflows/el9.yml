@@ -1,4 +1,4 @@
-name: RPM Packaging
+name: "Packaging (el9)"
 
 on:
   push:

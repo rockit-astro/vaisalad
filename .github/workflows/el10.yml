@@ -1,0 +1,15 @@
+name: "Packaging (el10)"
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build-packages:
+    name: "Packaging (el10)"
+    uses: rockit-astro/el10/.github/workflows/build-and-push-packages.yml@master
+    with:
+      build-cmd: make
+      packages: "*.rpm"
+    secrets: inherit
