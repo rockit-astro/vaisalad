@@ -135,7 +135,7 @@ class VaisalaDaemon:
         self._latest = None
 
         self._send_reset_rain = False
-        self._last_reset_rain_check = datetime.datetime.min
+        self._last_reset_rain_check = datetime.datetime.min.replace(tzinfo=datetime.timezone.utc)
         self._reset_rain_time = datetime.time.fromisoformat(self._config.reset_rain_time)
 
         threading.Thread(target=self.run, daemon=True).start()
@@ -180,8 +180,9 @@ class VaisalaDaemon:
 
                 # Main run loop
                 while True:
-                    now = datetime.datetime.utcnow()
-                    reset_time = datetime.datetime.combine(now.date(), self._reset_rain_time)
+                    # Uses datetime.timezone.utc rather than datetime.UTC for compatibility with python 3.9
+                    now = datetime.datetime.now(tz=datetime.timezone.utc)
+                    reset_time = datetime.datetime.combine(now.date(), self._reset_rain_time).replace(tzinfo=now.tzinfo)
                     if self._last_reset_rain_check < reset_time <= now:
                         self._send_reset_rain = True
 
@@ -194,7 +195,7 @@ class VaisalaDaemon:
                     match = self._vaisala_regex.match(data)
                     if match:
                         latest = {
-                            'date': datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%SZ'),
+                            'date': now.strftime('%Y-%m-%dT%H:%M:%SZ'),
                         }
 
                         for field, status in VAISALA_FIELDS.items():
